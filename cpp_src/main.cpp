@@ -3,7 +3,7 @@
 #include <iostream>
 #include <unistd.h>
 
-extern "C" int mainj(int argc, char *argv[])
+extern "C" int main2(int argc, char *argv[])
 {
 	(void)argc;
 	(void)argv;
