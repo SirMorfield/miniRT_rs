@@ -36,10 +36,8 @@ extern "C" int main2(int argc, char *argv[])
 	for (size_t i = 0; i < threads.capacity(); i++)
 		threads[i] = std::thread(&Renderer::thread, &renderer, scene, &fb);
 
-	Time render_time("Render time");
 	for (auto &th : threads)
 		th.join();
-	render_time.print();
 
 	fb.save_to_BMP();
 	return 0;
