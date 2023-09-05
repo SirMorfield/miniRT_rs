@@ -66,3 +66,7 @@ impl AsFormattedString for std::time::Duration {
         return result;
     }
 }
+
+pub fn is_power_of_2(x: usize) -> bool {
+    return x & (x - 1) == 0;
+}
