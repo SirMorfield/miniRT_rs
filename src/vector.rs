@@ -128,6 +128,17 @@ where
     }
 }
 
+impl std::ops::Mul<f32> for Vec3<f32> {
+    type Output = Self;
+    fn mul(self, rhs: f32) -> Self {
+        return Vec3 {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+        };
+    }
+}
+
 #[allow(dead_code)]
 impl<T> Vec3<T> {
     pub fn new(x: T, y: T, z: T) -> Self {
@@ -145,6 +156,27 @@ impl<T> Vec3<T> {
         }
     }
 
+    pub fn unit(x: T, y: T, z: T) -> Option<Self>
+    where
+        T: num_traits::float::Float,
+    {
+        let v = Vec3::new(x, y, z);
+        if !v.is_unit() {
+            return None;
+        }
+        return Some(v);
+    }
+
+    pub fn to_unit(x: T, y: T, z: T) -> Self
+    where
+        T: std::ops::Div<Output = T>,
+        T: std::ops::DivAssign,
+        T: num_traits::float::Float,
+    {
+        let mut v = Vec3::new(x, y, z);
+        return v.normalized();
+    }
+
     pub fn from_vec3(other: &Vec3<T>) -> Self
     where
         T: Clone,
@@ -156,16 +188,15 @@ impl<T> Vec3<T> {
         }
     }
 
-    pub fn dot(self, other: &Vec3<T>) -> Vec3<T>
+    pub fn dot(self, other: &Vec3<T>) -> T
     where
         T: std::ops::Mul<Output = T>,
+        T: std::ops::Add<Output = T>,
         T: Clone,
     {
-        return Vec3::new(
-            self.x * other.x.clone(),
-            self.y * other.y.clone(),
-            self.z * other.z.clone(),
-        );
+        return self.x.clone() * other.x.clone()
+            + self.y.clone() * other.y.clone()
+            + self.z.clone() * other.z.clone();
     }
 
     pub fn cross(self, other: &Vec3<T>) -> Vec3<T>
@@ -200,6 +231,14 @@ impl<T> Vec3<T> {
         T: num_traits::float::Float,
     {
         return self.length2().sqrt();
+    }
+
+    pub fn is_unit(self) -> bool
+    where
+        T: num_traits::float::Float,
+    {
+        let len = self.length() - T::one(); // ?
+        return len.abs() < T::epsilon();
     }
 
     pub fn normalize(&mut self)
