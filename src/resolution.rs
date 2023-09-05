@@ -1,6 +1,7 @@
 use crate::helpers::is_power_of_2;
 
 #[allow(dead_code)]
+#[derive(Clone, Copy)]
 pub struct Resolution {
     pub width: usize,
     pub height: usize,

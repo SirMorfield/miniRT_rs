@@ -4,13 +4,16 @@ mod resolution;
 use resolution::Resolution;
 mod frame_buffer;
 use frame_buffer::FrameBuffer;
-mod vector;
-use vector::Vec3;
-
 mod foreign_function_interfaces;
+mod vector;
 use foreign_function_interfaces::*;
 use std::time;
 extern crate bmp;
+mod scene;
+use scene::Scene;
+use std::path::Path;
+
+use scene::Renderer;
 
 fn cpp_main() -> i32 {
     let result: i32;
@@ -22,17 +25,25 @@ fn cpp_main() -> i32 {
 }
 
 fn main() {
-    let r = Resolution::new(1920, 1080, 4).unwrap();
-    let mut f = FrameBuffer::new(r).unwrap();
+    let resolution = Resolution::new(100, 100, 4).unwrap();
+    let mut frame_buffer = FrameBuffer::new(resolution).unwrap();
+    let scene_path = Path::new("rt/dragon.rt");
+    let scene = Scene::new(scene_path).unwrap();
+    let renderer = Renderer::new(resolution);
 
-    for x in 0..1000 {
-        for y in 0..1000 {
-            // ? are there better ways to cast values?
-            f.set_pixel(x, y, Vec3::new(255, x as u8, y as u8));
+    loop {
+        match frame_buffer.get_coordinate() {
+            None => break,
+            Some((x, y)) => {
+                let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
+                frame_buffer.set_pixel(x, y, color);
+                // print!("{} {} {}\r", x, y, color.x);
+            }
         }
     }
-    let path = std::path::Path::new("test.bmp");
-    f.save_as_bmp(path).unwrap();
+
+    let path = Path::new("output.bmp");
+    frame_buffer.save_as_bmp(path).unwrap();
 
     let start = time::Instant::now();
     let exit_code = cpp_main();
