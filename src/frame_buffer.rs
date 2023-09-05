@@ -1,7 +1,6 @@
-use bmp::{Image, Pixel};
-
 use crate::resolution::Resolution;
 use crate::vector::Vec3;
+use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
 
