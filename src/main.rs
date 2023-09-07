@@ -12,8 +12,11 @@ extern crate bmp;
 mod scene;
 use scene::Scene;
 use std::path::Path;
-
-use scene::Renderer;
+mod renderer;
+mod triangle;
+use renderer::Renderer;
+mod camera;
+mod util;
 
 fn cpp_main() -> i32 {
     let result: i32;
