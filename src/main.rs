@@ -6,7 +6,6 @@ mod frame_buffer;
 use frame_buffer::FrameBuffer;
 mod foreign_function_interfaces;
 mod vector;
-use foreign_function_interfaces::*;
 use std::time;
 extern crate bmp;
 mod scene;
@@ -18,15 +17,6 @@ use renderer::Renderer;
 mod camera;
 mod util;
 
-fn cpp_main() -> i32 {
-    let result: i32;
-    unsafe {
-        let argv = std::env::args().collect::<Vec<_>>();
-        result = main2(argv.len() as i32, vector_to_cstring_vector(argv));
-    }
-    return result;
-}
-
 fn main() {
     let resolution = Resolution::new(100, 100, 4).unwrap();
     let mut frame_buffer = FrameBuffer::new(resolution).unwrap();
@@ -34,6 +24,7 @@ fn main() {
     let scene = Scene::new(scene_path).unwrap();
     let renderer = Renderer::new(resolution);
 
+    let start = time::Instant::now();
     loop {
         match frame_buffer.get_coordinate() {
             None => break,
@@ -44,13 +35,9 @@ fn main() {
             }
         }
     }
+    let duration = start.elapsed();
+    println!("Scene rendered in: {}", duration.as_formatted_str());
 
     let path = Path::new("output.bmp");
     frame_buffer.save_as_bmp(path).unwrap();
-
-    let start = time::Instant::now();
-    let exit_code = cpp_main();
-    let duration = start.elapsed();
-    println!("Exit code: {}", exit_code);
-    println!("Time elapsed: {}", duration.as_formatted_str());
 }
