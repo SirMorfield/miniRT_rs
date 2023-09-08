@@ -1,6 +1,7 @@
 use crate::camera::Camera;
 use crate::resolution::Resolution;
 use crate::scene::Scene;
+use crate::triangle::Triangle;
 use crate::util::{Hit, Ray};
 use crate::vector::Vec3;
 pub struct Renderer {
@@ -16,6 +17,7 @@ impl Renderer {
             aspect_ratio,
         }
     }
+
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
         let px =
             (2.0 * x / (self.resolution.width as f32) - 1.0) * self.aspect_ratio * camera.fow_tan;
@@ -28,7 +30,6 @@ impl Renderer {
         };
 
         let negative_y = camera.dir.cross(&positive_x);
-
         let mut ray_dir = ((positive_x * px) + (negative_y * py)) + camera.dir;
         ray_dir.normalize();
 
@@ -36,19 +37,29 @@ impl Renderer {
     }
 
     pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Vec3<u8> {
-        let mut hit = Hit::new(false);
+        let mut hit: Option<Hit> = None;
 
         let ray = self.ray_from_pixel(camera, x, y);
         for triangle in &scene.triangles {
             let triangle_hit = triangle.hit(&ray);
-            if triangle_hit.hit {
-                hit = triangle_hit;
+            if !triangle_hit {
+                continue;
+            }
+            let info = triangle.hit_info(&ray);
+
+            match hit {
+                None => hit = Some(info),
+                Some(hit_info) => {
+                    if info.dist < hit_info.dist {
+                        hit = Some(info);
+                    }
+                }
             }
         }
-        if hit.hit {
-            return Vec3::homogeneous(255);
-        }
-        return scene.background_color;
+        return match hit {
+            Some(hit) => hit.color,
+            None => scene.background_color,
+        };
     }
     // pub fn render(self, scene: &Scene, camera: &Camera) -> Vec<u8> {
     //     let mut pixels: Vec<u8> = Vec::new();
