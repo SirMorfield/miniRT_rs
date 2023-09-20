@@ -45,3 +45,18 @@ pub fn correct_normal(normal: Vec3<f32>, dir: &Vec3<f32>) -> Vec3<f32> {
         normal
     };
 }
+
+#[derive(PartialEq, Debug)]
+pub struct PositiveNonzeroF32(f32);
+
+impl PositiveNonzeroF32 {
+    pub fn new(value: f32) -> Option<Self> {
+        match value {
+            x if x <= 0.0 => None,
+            _ => Some(PositiveNonzeroF32(value)),
+        }
+    }
+    pub fn to_f32(&self) -> f32 {
+        self.0
+    }
+}

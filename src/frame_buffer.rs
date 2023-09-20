@@ -27,6 +27,11 @@ impl FrameBuffer {
         });
     }
 
+    // returns 0 - 1
+    pub fn progress(&self) -> f32 {
+        return self.pixel_index as f32 / (self.resolution.width * self.resolution.height) as f32;
+    }
+
     pub fn get_coordinate(&mut self) -> Option<(usize, usize)> {
         if self.pixel_index >= self.buffer.len() {
             return None;

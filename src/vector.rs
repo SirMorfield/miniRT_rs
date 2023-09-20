@@ -139,6 +139,17 @@ impl std::ops::Mul<f32> for Vec3<f32> {
     }
 }
 
+impl std::ops::Mul<f32> for Vec3<u8> {
+    type Output = Self;
+    fn mul(self, rhs: f32) -> Self {
+        return Vec3 {
+            x: (self.x as f32 * rhs) as u8,
+            y: (self.y as f32 * rhs) as u8,
+            z: (self.z as f32 * rhs) as u8,
+        };
+    }
+}
+
 #[allow(dead_code)]
 impl<T> Vec3<T> {
     pub fn new(x: T, y: T, z: T) -> Self {
@@ -281,6 +292,29 @@ impl<T> Vec3<T> {
             self.y.clone() + other.y * t.clone(),
             self.z.clone() + other.z * t.clone(),
         );
+    }
+
+    pub fn distance2(&self, other: &Vec3<T>) -> T
+    where
+        T: Clone,
+        T: std::ops::Sub<Output = T>,
+        T: std::ops::Add<Output = T>,
+        T: std::ops::Mul<Output = T>,
+    {
+        return (self.x.clone() - other.x.clone()) * (self.x.clone() - other.x.clone())
+            + (self.y.clone() - other.y.clone()) * (self.y.clone() - other.y.clone())
+            + (self.z.clone() - other.z.clone()) * (self.z.clone() - other.z.clone());
+    }
+
+    pub fn distance(&self, other: &Vec3<T>) -> T
+    where
+        T: Clone,
+        T: std::ops::Sub<Output = T>,
+        T: std::ops::Add<Output = T>,
+        T: std::ops::Mul<Output = T>,
+        T: num_traits::float::Float,
+    {
+        return self.distance2(other).sqrt();
     }
 
     pub fn min(self, other: Vec3<T>) -> Vec3<T>
