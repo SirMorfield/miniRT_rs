@@ -151,7 +151,10 @@ impl std::ops::Mul<f32> for Vec3<u8> {
 }
 
 #[allow(dead_code)]
-impl<T> Vec3<T> {
+impl<T> Vec3<T>
+where
+    T: Clone + Copy,
+{
     pub fn new(x: T, y: T, z: T) -> Self {
         Vec3 { x, y, z }
     }
@@ -161,9 +164,9 @@ impl<T> Vec3<T> {
         T: Clone,
     {
         Vec3 {
-            x: xyz.clone(),
-            y: xyz.clone(),
-            z: xyz.clone(),
+            x: xyz,
+            y: xyz,
+            z: xyz,
         }
     }
 
@@ -193,9 +196,9 @@ impl<T> Vec3<T> {
         T: Clone,
     {
         Vec3 {
-            x: other.x.clone(),
-            y: other.y.clone(),
-            z: other.z.clone(),
+            x: other.x,
+            y: other.y,
+            z: other.z,
         }
     }
 
@@ -205,9 +208,7 @@ impl<T> Vec3<T> {
         T: std::ops::Add<Output = T>,
         T: Clone,
     {
-        return self.x.clone() * other.x.clone()
-            + self.y.clone() * other.y.clone()
-            + self.z.clone() * other.z.clone();
+        return self.x * other.x + self.y * other.y + self.z * other.z;
     }
 
     pub fn cross(self, other: &Vec3<T>) -> Vec3<T>
@@ -217,9 +218,9 @@ impl<T> Vec3<T> {
         T: Clone,
     {
         return Vec3::new(
-            self.y.clone() * other.z.clone() - self.z.clone() * other.y.clone(),
-            self.z.clone() * other.x.clone() - self.x.clone() * other.z.clone(),
-            self.x.clone() * other.y.clone() - self.y.clone() * other.x.clone(),
+            self.y * other.z - self.z * other.y,
+            self.z * other.x - self.x * other.z,
+            self.x * other.y - self.y * other.x,
         );
     }
 
@@ -229,9 +230,7 @@ impl<T> Vec3<T> {
         T: std::ops::Add<Output = T>,
         T: Clone,
     {
-        return self.x.clone() * self.x.clone()
-            + self.y.clone() * self.y.clone()
-            + self.z.clone() * self.z.clone();
+        return self.x * self.x + self.y * self.y + self.z * self.z;
     }
 
     pub fn length(self) -> T
@@ -260,9 +259,9 @@ impl<T> Vec3<T> {
     {
         // TODO
         let length = Vec3::new(self.x, self.y, self.z).length();
-        self.x /= length.clone();
-        self.y /= length.clone();
-        self.z /= length.clone();
+        self.x /= length;
+        self.y /= length;
+        self.z /= length;
     }
 
     pub fn normalized(&mut self) -> Vec3<T>
@@ -273,9 +272,9 @@ impl<T> Vec3<T> {
     {
         // TODO
         let length = Vec3::new(self.x, self.y, self.z).length();
-        self.x /= length.clone();
-        self.y /= length.clone();
-        self.z /= length.clone();
+        self.x /= length;
+        self.y /= length;
+        self.z /= length;
 
         // TODO: return self without copy?
         return Vec3::from_vec3(self);
@@ -288,9 +287,9 @@ impl<T> Vec3<T> {
         T: Clone,
     {
         return Vec3::new(
-            self.x.clone() + other.x * t.clone(),
-            self.y.clone() + other.y * t.clone(),
-            self.z.clone() + other.z * t.clone(),
+            self.x + other.x * t,
+            self.y + other.y * t,
+            self.z + other.z * t,
         );
     }
 
@@ -301,9 +300,9 @@ impl<T> Vec3<T> {
         T: std::ops::Add<Output = T>,
         T: std::ops::Mul<Output = T>,
     {
-        return (self.x.clone() - other.x.clone()) * (self.x.clone() - other.x.clone())
-            + (self.y.clone() - other.y.clone()) * (self.y.clone() - other.y.clone())
-            + (self.z.clone() - other.z.clone()) * (self.z.clone() - other.z.clone());
+        return (self.x - other.x) * (self.x - other.x)
+            + (self.y - other.y) * (self.y - other.y)
+            + (self.z - other.z) * (self.z - other.z);
     }
 
     pub fn distance(&self, other: &Vec3<T>) -> T
