@@ -1,4 +1,5 @@
 extern crate bmp;
+extern crate num_integer;
 mod camera;
 mod frame_buffer;
 mod helpers;
@@ -14,6 +15,7 @@ mod vector;
 
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
+use num::PowerOf2;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
@@ -86,6 +88,7 @@ fn main() {
     let resolution = Resolution::new(
         NonZeroUsize::new(500).unwrap(),
         NonZeroUsize::new(500).unwrap(),
+        PowerOf2::new(4).unwrap(),
     );
     let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =

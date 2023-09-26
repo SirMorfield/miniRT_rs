@@ -76,3 +76,37 @@ impl Float0to1 {
         self.0
     }
 }
+
+fn is_power_of_2(x: usize) -> bool {
+    if x == 0 {
+        return false;
+    }
+    return x & (x - 1) == 0;
+}
+#[cfg(test)]
+mod tests2 {
+    use crate::num::is_power_of_2;
+
+    #[test]
+    fn test_is_power_of_2() {
+        assert_eq!(is_power_of_2(0), false);
+        assert_eq!(is_power_of_2(1), true);
+        assert_eq!(is_power_of_2(2), true);
+        assert_eq!(is_power_of_2(3), false);
+        assert_eq!(is_power_of_2(1024), true);
+    }
+}
+
+#[derive(PartialEq, PartialOrd, Debug, Clone, Copy)]
+pub struct PowerOf2(usize);
+impl PowerOf2 {
+    pub fn new(value: usize) -> Option<Self> {
+        match value {
+            x if !is_power_of_2(x) => None,
+            _ => Some(PowerOf2(value)),
+        }
+    }
+    pub fn get(&self) -> usize {
+        self.0
+    }
+}

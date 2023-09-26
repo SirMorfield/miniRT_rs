@@ -101,37 +101,43 @@ impl Renderer {
         }
     }
 
-    pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Vec3<u8> {
-        let ray = self.ray_from_pixel(camera, x, y);
-        let hit = self.hit(scene, &ray);
+    fn average_color(colors: &Vec<Vec3<u8>>) -> Vec3<u8> {
+        let mut final_color = Vec3::<u64>::homogeneous(0);
+        for color in colors {
+            final_color.x += color.x as u64;
+            final_color.y += color.y as u64;
+            final_color.z += color.z as u64;
+        }
 
-        return match hit {
-            Some(hit) => self.get_color(scene, &hit),
-            None => scene.background_color,
-        };
+        final_color.x /= colors.len() as u64;
+        final_color.y /= colors.len() as u64;
+        final_color.z /= colors.len() as u64;
+
+        let final_color = Vec3::new(
+            final_color.x as u8,
+            final_color.y as u8,
+            final_color.z as u8,
+        );
+        return final_color;
     }
 
-    // pub fn render(self, scene: &Scene, camera: &Camera) -> Vec<u8> {
-    //     let mut pixels: Vec<u8> = Vec::new();
-    //     for y in 0..self.resolution.height.get() {
-    //         for x in 0..self.resolution.width.get() {
-    //             let ray = self.ray_from_pixel(camera, x as f32, y as f32);
-    //             let mut hit = Hit::new(false);
-    //             for triangle in &scene.triangles {
-    //                 let triangle_hit = triangle.hit(ray);
-    //                 if triangle_hit.hit {
-    //                     hit = triangle_hit;
-    //                 }
-    //             }
-    //             let color = match hit.hit {
-    //                 true => Vec3::new(255, 0, 0),
-    //                 false => scene.background_color,
-    //             };
-    //             pixels.push(color.x);
-    //             pixels.push(color.y);
-    //             pixels.push(color.z);
-    //         }
-    //     }
-    //     return pixels;
-    // }
+    pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Vec3<u8> {
+        let mut colors: Vec<Vec3<u8>> = Vec::new();
+        colors.reserve(self.resolution.aa.get());
+        let row_colums = self.resolution.pixels_per_side();
+
+        for sub_y in 0..row_colums {
+            for sub_x in 0..row_colums {
+                let x = x + (sub_x as f32) / (row_colums as f32);
+                let y = y + (sub_y as f32) / (row_colums as f32);
+                let ray = self.ray_from_pixel(camera, x, y);
+                let hit = self.hit(scene, &ray);
+                match hit {
+                    Some(hit) => colors.push(self.get_color(scene, &hit)),
+                    None => colors.push(scene.background_color),
+                }
+            }
+        }
+        return Self::average_color(&colors);
+    }
 }
