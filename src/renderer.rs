@@ -88,7 +88,7 @@ impl Renderer {
     }
 
     fn is_clear_path(&self, scene: &Scene, point: &Vec3<f32>, light: &Light) -> bool {
-        let v: Vec3<f32> = (light.origin - *point).normalized();
+        let v: Vec3<f32> = (light.origin - *point).to_normalized();
         let to_light: Ray = Ray::new(*point, v);
 
         let hit = self.hit(&scene, &to_light);

@@ -188,7 +188,8 @@ where
         T: num_traits::float::Float,
     {
         let mut v = Vec3::new(x, y, z);
-        return v.normalized();
+        v.normalize();
+        return v;
     }
 
     pub fn from_vec3(other: &Vec3<T>) -> Self
@@ -264,20 +265,15 @@ where
         self.z /= length;
     }
 
-    pub fn normalized(&mut self) -> Vec3<T>
+    pub fn to_normalized(&self) -> Vec3<T>
     where
         T: std::ops::Div<Output = T>,
         T: std::ops::DivAssign,
         T: num_traits::float::Float,
     {
-        // TODO
-        let length = Vec3::new(self.x, self.y, self.z).length();
-        self.x /= length;
-        self.y /= length;
-        self.z /= length;
-
-        // TODO: return self without copy?
-        return Vec3::from_vec3(self);
+        let mut new = Vec3::new(self.x, self.y, self.z);
+        new.normalize();
+        return new;
     }
 
     pub fn translate(self, other: Vec3<T>, t: T) -> Vec3<T>

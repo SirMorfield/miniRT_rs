@@ -16,7 +16,7 @@ impl Light {
         }
     }
     pub fn relative_intensity(&self, point: &Vec3<f32>, normal: &Vec3<f32>) -> f32 {
-        let to_light = (self.origin - *point).normalized();
+        let to_light = (self.origin - *point).to_normalized();
 
         let intensity = self.intensity * normal.dot(&to_light).max(0.0);
         return intensity.min(1.0);

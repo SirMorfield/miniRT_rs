@@ -13,13 +13,12 @@ mod util;
 mod vector;
 
 use frame_buffer::FrameBuffer;
-use helpers::*;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
 use scene::Scene;
 use std::path::Path;
-use std::{path::PathBuf, time};
+use std::path::PathBuf;
 use util::PositiveNonzeroF32;
 
 fn get_rt_file() -> Option<PathBuf> {
@@ -39,7 +38,6 @@ fn main() {
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
 
-    let start = time::Instant::now();
     loop {
         match frame_buffer.get_coordinate() {
             None => break,
@@ -51,11 +49,6 @@ fn main() {
         }
     }
     progress_logger.log_end();
-    let duration = start.elapsed();
-    println!(
-        "Scene rendered in: {}",
-        duration.as_formatted_str(Precision::Microseconds)
-    );
 
     let path = Path::new("output.bmp");
     frame_buffer.save_as_bmp(path).unwrap();

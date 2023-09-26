@@ -61,7 +61,7 @@ impl Triangle {
         let t = self.t(ray);
         let dist = (ray.dir * t).length(); // TODO
         let (edge1, edge2) = self.edges();
-        let normal = correct_normal(edge1.cross(&edge2).normalized(), &ray.dir);
+        let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
 
         return Hit::new(dist, ray.origin, ray.origin * dist, normal, self.color);
     }
