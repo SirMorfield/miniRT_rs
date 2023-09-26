@@ -3,6 +3,7 @@ mod camera;
 mod frame_buffer;
 mod helpers;
 mod light;
+mod num;
 mod progress_logger;
 mod renderer;
 mod resolution;
@@ -12,6 +13,7 @@ mod util;
 mod vector;
 
 use frame_buffer::FrameBuffer;
+use num::PositiveNonzeroF32;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
@@ -22,7 +24,6 @@ use std::path::PathBuf;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::{mpsc, Arc, Mutex};
-use util::PositiveNonzeroF32;
 use vector::Vec3;
 
 fn get_rt_file() -> Option<PathBuf> {
@@ -82,7 +83,10 @@ fn render_scene(
 fn main() {
     let scene_path = get_rt_file().unwrap();
     let scene = Scene::new(scene_path.as_path()).unwrap();
-    let resolution = Resolution::new(500, 500).unwrap();
+    let resolution = Resolution::new(
+        NonZeroUsize::new(500).unwrap(),
+        NonZeroUsize::new(500).unwrap(),
+    );
     let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);

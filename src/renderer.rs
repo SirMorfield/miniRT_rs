@@ -13,7 +13,7 @@ pub struct Renderer {
 
 impl Renderer {
     pub fn new(resolution: Resolution) -> Self {
-        let aspect_ratio = resolution.width as f32 / resolution.height as f32;
+        let aspect_ratio = resolution.width.get() as f32 / resolution.height.get() as f32;
         Self {
             resolution,
             aspect_ratio,
@@ -21,9 +21,10 @@ impl Renderer {
     }
 
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
-        let px =
-            (2.0 * x / (self.resolution.width as f32) - 1.0) * self.aspect_ratio * camera.fow_tan;
-        let py = (2.0 * y / (self.resolution.height as f32) - 1.0) * camera.fow_tan;
+        let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0)
+            * self.aspect_ratio
+            * camera.fow_tan;
+        let py = (2.0 * y / (self.resolution.height.get() as f32) - 1.0) * camera.fow_tan;
 
         let positive_x: Vec3<f32> = if camera.dir.x == 0.0 && camera.dir.z == 0.0 {
             Vec3::new(1.0, 0.0, 0.0)
@@ -112,8 +113,8 @@ impl Renderer {
 
     // pub fn render(self, scene: &Scene, camera: &Camera) -> Vec<u8> {
     //     let mut pixels: Vec<u8> = Vec::new();
-    //     for y in 0..self.resolution.height {
-    //         for x in 0..self.resolution.width {
+    //     for y in 0..self.resolution.height.get() {
+    //         for x in 0..self.resolution.width.get() {
     //             let ray = self.ray_from_pixel(camera, x as f32, y as f32);
     //             let mut hit = Hit::new(false);
     //             for triangle in &scene.triangles {

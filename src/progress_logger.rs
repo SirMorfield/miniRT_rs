@@ -1,6 +1,6 @@
 use crate::helpers::AsFormattedString;
 use crate::helpers::Precision;
-use crate::util::{Float0to1, PositiveNonzeroF32, ToFixed};
+use crate::num::{Float0to1, PositiveNonzeroF32, ToFixed};
 use pad::{Alignment, PadStr};
 use std::io::Write;
 
@@ -21,14 +21,14 @@ impl ProgressLogger {
         Self {
             label: label.to_string(),
             start_time: std::time::Instant::now(),
-            precision: PositiveNonzeroF32::new(precision.to_f32() / 100.0).unwrap(),
+            precision: PositiveNonzeroF32::new(precision.get() / 100.0).unwrap(),
             mantissas,
             last_progress: Float0to1::new(0.0).unwrap(),
         }
     }
     pub fn log(&mut self, progress: Float0to1) {
         if self.last_progress < progress
-            && progress.to_f32() - self.last_progress.to_f32() < self.precision.to_f32()
+            && progress.get() - self.last_progress.get() < self.precision.get()
         {
             return;
         }
@@ -41,14 +41,14 @@ impl ProgressLogger {
         let elapsed = self.start_time.elapsed();
         let elapsed = elapsed.as_secs() as f32 + elapsed.subsec_millis() as f32 / 1000.0;
 
-        let remaining = elapsed / progress.to_f32() - elapsed;
+        let remaining = elapsed / progress.get() - elapsed;
         let remaining = std::time::Duration::from_secs_f32(remaining);
         let remaining = remaining.as_formatted_str(Precision::Milliseconds);
 
         let elapsed = std::time::Duration::from_secs_f32(elapsed);
         let elapsed = elapsed.as_formatted_str(Precision::Milliseconds);
 
-        let progress = (progress.to_f32() * 100.0)
+        let progress = (progress.get() * 100.0)
             .to_fixed(self.mantissas)
             .to_string()
             .pad(
