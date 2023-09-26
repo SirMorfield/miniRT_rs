@@ -1,22 +1,26 @@
-mod helpers;
-use helpers::*;
-mod resolution;
-use resolution::Resolution;
-mod frame_buffer;
-use frame_buffer::FrameBuffer;
-mod foreign_function_interfaces;
-mod vector;
-use std::{path::PathBuf, time};
 extern crate bmp;
+mod camera;
+mod foreign_function_interfaces;
+mod frame_buffer;
+mod helpers;
+mod light;
+mod progress_logger;
+mod renderer;
+mod resolution;
 mod scene;
+mod triangle;
+mod util;
+mod vector;
+
+use frame_buffer::FrameBuffer;
+use helpers::*;
+use progress_logger::ProgressLogger;
+use renderer::Renderer;
+use resolution::Resolution;
 use scene::Scene;
 use std::path::Path;
-mod renderer;
-mod triangle;
-use renderer::Renderer;
-mod camera;
-mod light;
-mod util;
+use std::{path::PathBuf, time};
+use util::PositiveNonzeroF32;
 
 fn get_rt_file() -> Option<PathBuf> {
     let argv = std::env::args().collect::<Vec<_>>();
@@ -32,6 +36,8 @@ fn main() {
     let resolution = Resolution::new(500, 500).unwrap();
     let mut frame_buffer = FrameBuffer::new(resolution).unwrap();
     let renderer = Renderer::new(resolution);
+    let mut progress_logger =
+        ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
 
     let start = time::Instant::now();
     loop {
@@ -40,12 +46,16 @@ fn main() {
             Some((x, y)) => {
                 let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
                 frame_buffer.set_pixel(x, y, color);
-                print!("{}%     \r", frame_buffer.progress() * 100.0);
+                progress_logger.log(frame_buffer.progress());
             }
         }
     }
+    progress_logger.log_end();
     let duration = start.elapsed();
-    println!("Scene rendered in: {}", duration.as_formatted_str());
+    println!(
+        "Scene rendered in: {}",
+        duration.as_formatted_str(Precision::Microseconds)
+    );
 
     let path = Path::new("output.bmp");
     frame_buffer.save_as_bmp(path).unwrap();

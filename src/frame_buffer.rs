@@ -1,4 +1,5 @@
 use crate::resolution::Resolution;
+use crate::util::Float0to1;
 use crate::vector::Vec3;
 use bmp::{Image, Pixel};
 use std::io;
@@ -28,8 +29,11 @@ impl FrameBuffer {
     }
 
     // returns 0 - 1
-    pub fn progress(&self) -> f32 {
-        return self.pixel_index as f32 / (self.resolution.width * self.resolution.height) as f32;
+    pub fn progress(&self) -> Float0to1 {
+        return Float0to1::new(
+            self.pixel_index as f32 / (self.resolution.width * self.resolution.height) as f32,
+        )
+        .unwrap_or(Float0to1::new(0.0).unwrap());
     }
 
     pub fn get_coordinate(&mut self) -> Option<(usize, usize)> {
