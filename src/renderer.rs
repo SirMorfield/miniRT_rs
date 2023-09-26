@@ -4,6 +4,8 @@ use crate::resolution::Resolution;
 use crate::scene::Scene;
 use crate::util::{Hit, Ray};
 use crate::vector::Vec3;
+
+#[derive(Clone)]
 pub struct Renderer {
     resolution: Resolution,
     aspect_ratio: f32,

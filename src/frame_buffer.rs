@@ -65,7 +65,7 @@ impl FrameBuffer {
         return Some(self.buffer[i]);
     }
 
-    pub fn save_as_bmp(self, path: &std::path::Path) -> io::Result<()> {
+    pub fn save_as_bmp(&self, path: &std::path::Path) -> io::Result<()> {
         let mut img = Image::new(self.resolution.width as u32, self.resolution.height as u32);
 
         for x in 0..self.resolution.width {
