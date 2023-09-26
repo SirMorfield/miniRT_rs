@@ -1,5 +1,5 @@
 use crate::light::Light;
-use crate::util::PositiveNonzeroF32;
+use crate::num::PositiveNonzeroF32;
 use crate::vector::Vec3;
 use crate::{camera::Camera, triangle::Triangle};
 use std::io::{self, BufRead};

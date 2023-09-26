@@ -1,4 +1,4 @@
-use crate::util::PositiveNonzeroF32;
+use crate::num::PositiveNonzeroF32;
 use crate::vector::Vec3;
 
 pub struct Light {
@@ -11,7 +11,7 @@ impl Light {
     pub fn new(origin: Vec3<f32>, intensity: PositiveNonzeroF32, color: Vec3<u8>) -> Self {
         Self {
             origin,
-            intensity: intensity.to_f32(),
+            intensity: intensity.get(),
             color,
         }
     }
