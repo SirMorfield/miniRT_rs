@@ -1,6 +1,5 @@
 extern crate bmp;
 mod camera;
-mod foreign_function_interfaces;
 mod frame_buffer;
 mod helpers;
 mod light;
