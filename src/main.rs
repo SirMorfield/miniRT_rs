@@ -19,6 +19,7 @@ use scene::Scene;
 use std::num::NonZeroUsize;
 use std::path::Path;
 use std::path::PathBuf;
+use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::sync::{mpsc, Arc, Mutex};
 use util::PositiveNonzeroF32;
@@ -54,30 +55,39 @@ fn span_thread(
     });
 }
 
+fn render_scene(
+    scene: Arc<Scene>,
+    frame_buffer: Arc<Mutex<FrameBuffer>>,
+    resolution: Resolution,
+) -> Receiver<(usize, usize, Vec3<u8>)> {
+    let (tx, rx) = mpsc::channel();
+    let renderer = Renderer::new(resolution);
+    let num_threads = std::thread::available_parallelism()
+        .unwrap_or(NonZeroUsize::new(8).unwrap())
+        .get();
+    println!("Using {} threads", &num_threads);
+
+    for _ in 0..num_threads {
+        let _ = span_thread(
+            tx.clone(),
+            renderer.clone(),
+            scene.clone(),
+            frame_buffer.clone(),
+        );
+    }
+    drop(tx);
+    return rx;
+}
+
 fn main() {
     let scene_path = get_rt_file().unwrap();
     let scene = Scene::new(scene_path.as_path()).unwrap();
     let resolution = Resolution::new(500, 500).unwrap();
-    let frame_buffer = FrameBuffer::new(resolution).unwrap();
-    let renderer = Renderer::new(resolution);
+    let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
 
-    let (tx, rx) = mpsc::channel();
-    let scene = Arc::new(scene);
-    let frame_buffer = Arc::new(Mutex::new(frame_buffer));
-    let num_threads = std::thread::available_parallelism().unwrap_or(NonZeroUsize::new(8).unwrap());
-    println!("Using {} threads", &num_threads);
-
-    for _ in 0..num_threads.get() {
-        let scene = scene.clone();
-        let frame_buffer = frame_buffer.clone();
-        let renderer = renderer.clone();
-        let tx = tx.clone();
-        let _ = span_thread(tx, renderer, scene, frame_buffer);
-    }
-    drop(tx);
-
+    let rx = render_scene(Arc::new(scene), frame_buffer.clone(), resolution);
     for (x, y, color) in rx {
         let mut frame_buffer = frame_buffer.lock().unwrap();
         frame_buffer.set_pixel(x, y, color);
@@ -88,5 +98,5 @@ fn main() {
     let path = Path::new("output.bmp");
     let frame_buffer = frame_buffer.lock().unwrap();
     frame_buffer.save_as_bmp(path).unwrap();
-    println!("Saved to: {}", path.display());
+    println!("Saved to: ./{}", path.display());
 }
