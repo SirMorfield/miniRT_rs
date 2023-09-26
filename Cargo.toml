@@ -1,5 +1,5 @@
 [package]
-name = "c_interop"
+name = "minirt_rs"
 version = "0.1.0"
 edition = "2021"
 

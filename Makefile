@@ -1,3 +1,7 @@
-all:
-	gcc -shared -o libhello.so src/main.c
-	rustc src/main.rs
+build-run-release:
+	cargo build --release --bin minirt_rs
+	./target/release/minirt_rs rt/dragon.rt
+
+build-run-debug:
+	cargo build --bin minirt_rs
+	./target/debug/minirt_rs rt/dragon.rt
