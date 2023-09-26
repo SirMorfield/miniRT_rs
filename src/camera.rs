@@ -12,7 +12,7 @@ impl Camera {
         let fow_tan = (fov * 0.5).tan();
         Self {
             pos,
-            dir,
+            dir: dir.to_normalized(),
             fov,
             fow_tan,
         }

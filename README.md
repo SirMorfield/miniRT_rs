@@ -1,15 +1,11 @@
 # A simple ray tracer in Rust
 
-Well it's mostly in C++, this is an opportunity to learn Rust by porting C++ code to Rust.
+It's based on https://github.com/SirMorfield/miniRT in CPP.
 
-## Build
+This image was rendered by this code:
+![dragon](./media/dragon.png)
 
+## Build and run
 ```bash
-cargo build --release
-```
-
-## Run
-
-```bash
-cargo run --release
+make build-run-release
 ```
