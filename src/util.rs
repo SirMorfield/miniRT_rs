@@ -60,5 +60,6 @@ pub trait Shape {
     fn t(&self, ray: &Ray) -> f32;
     fn hit(&self, ray: &Ray) -> bool;
     fn hit_info(&self, ray: &Ray) -> Hit;
+    // fn hit(&self, ray: &Ray) -> Option<Hit>; // TODO
     fn aabb(&self) -> AABB;
 }

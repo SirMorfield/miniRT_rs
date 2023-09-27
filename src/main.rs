@@ -1,7 +1,9 @@
 extern crate bmp;
 extern crate num_integer;
+extern crate tobj;
 
 mod camera;
+mod file_readers;
 mod frame_buffer;
 mod helpers;
 mod light;
@@ -39,7 +41,7 @@ fn get_rt_file() -> Option<PathBuf> {
     Path::new(argv.get(1).unwrap()).canonicalize().ok()
 }
 
-fn span_thread(
+fn spawn_thread(
     tx: Sender<(usize, usize, Vec3<u8>)>,
     renderer: Renderer,
     scene: Arc<Scene>,
@@ -73,7 +75,7 @@ fn render_scene(
     println!("Using {num_threads} threads");
 
     for _ in 0..num_threads {
-        let _ = span_thread(
+        let _ = spawn_thread(
             tx.clone(),
             renderer.clone(),
             scene.clone(),

@@ -159,7 +159,6 @@ where
         }
         for shape in &this.shapes {
             assert!(shape.is_inside_aabb(&this.aabb));
-            // println!("shape: {:?}", shape.aabb());
         }
         return this;
     }

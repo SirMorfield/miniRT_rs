@@ -96,8 +96,8 @@ pub struct Scene {
     pub ambient: Light,
 }
 
-impl Scene {
-    pub fn default() -> Self {
+impl Default for Scene {
+    fn default() -> Self {
         Self {
             triangles: Octree::new(vec![]),
             ambient: Light::new(
@@ -113,23 +113,20 @@ impl Scene {
             ),
         }
     }
+}
 
+impl Scene {
     pub fn new(path: &std::path::Path) -> Result<Self, String> {
         let file = std::fs::File::open(path).or(Err("Could not open file"))?;
         let lines = io::BufReader::new(file).lines();
         let mut triangles: Vec<Triangle> = Vec::new();
         let mut self_ = Self::default();
-        // TODO: Egypt is never far
+
         for line in lines {
-            match line {
-                Ok(line) => {
-                    match self_.parse_line(&line, &mut triangles) {
-                        Ok(_) => (),
-                        Err(_) => return Err("Could not parse line: ".to_string() + &line),
-                    };
-                }
-                Err(_) => return Err("Could not read line".to_string()),
-            }
+            let line = line.map_err(|_| "Could not read line: ".to_string())?;
+            self_
+                .parse_line(&line, &mut triangles)
+                .map_err(|_| "Could not parse line: ".to_string() + &line)?;
         }
         self_.triangles = Octree::new(triangles);
         return Ok(self_);
