@@ -1,5 +1,6 @@
 use crate::light::Light;
 use crate::num::PositiveNonzeroF32;
+use crate::octree::Octree;
 use crate::vector::Vec3;
 use crate::{camera::Camera, triangle::Triangle};
 use std::io::{self, BufRead};
@@ -61,8 +62,8 @@ fn to_light(blocks: Vec<&str>) -> Option<Light> {
 }
 
 pub struct Scene {
-    pub camera: Camera, // should be plural
-    pub triangles: Vec<Triangle>,
+    pub camera: Camera, // TODO: should be plural
+    pub triangles: Octree<Triangle>,
     pub lights: Vec<Light>,
     pub background_color: Vec3<u8>,
 }
@@ -70,7 +71,7 @@ pub struct Scene {
 impl Scene {
     pub fn default() -> Self {
         Self {
-            triangles: Vec::new(),
+            triangles: Octree::new(),
             background_color: Vec3::new(0, 0, 0),
             lights: Vec::new(),
 
@@ -100,6 +101,9 @@ impl Scene {
                 Err(_) => return Err("Could not read line".to_string()),
             }
         }
+
+        self_.triangles.shrink_to_fit();
+        self_.triangles.subdivide();
         return Ok(self_);
     }
 

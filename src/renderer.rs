@@ -40,25 +40,7 @@ impl Renderer {
     }
 
     pub fn hit(&self, scene: &Scene, ray: &Ray) -> Option<Hit> {
-        let mut hit: Option<Hit> = None;
-
-        for triangle in &scene.triangles {
-            let triangle_hit = triangle.hit(&ray);
-            if !triangle_hit {
-                continue;
-            }
-            let info = triangle.hit_info(&ray);
-
-            match hit {
-                None => hit = Some(info),
-                Some(hit_info) => {
-                    if info.dist < hit_info.dist {
-                        hit = Some(info);
-                    }
-                }
-            }
-        }
-        return hit;
+        return scene.triangles.hit(&ray);
     }
 
     // TODO: move to Hit

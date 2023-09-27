@@ -5,6 +5,7 @@ mod frame_buffer;
 mod helpers;
 mod light;
 mod num;
+mod octree;
 mod progress_logger;
 mod renderer;
 mod resolution;
