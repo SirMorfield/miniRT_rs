@@ -19,7 +19,7 @@ impl ProgressLogger {
     /// so 0.1 will only log  0.1%, 0.2%, 0.3% etc.
     pub fn new(label: &str, precision: PositiveNonzeroF32, mantissas: usize) -> Self {
         Self {
-            label: label.to_string(),
+            label: label.into(),
             start_time: std::time::Instant::now(),
             precision: PositiveNonzeroF32::new(precision.get() / 100.0).unwrap(),
             mantissas,
@@ -48,9 +48,8 @@ impl ProgressLogger {
         let elapsed = std::time::Duration::from_secs_f32(elapsed);
         let elapsed = elapsed.as_formatted_str(Precision::Milliseconds);
 
-        let progress = (progress.get() * 100.0)
+        let progress = (progress.get() * 100.0) /*.*/
             .to_fixed(self.mantissas)
-            .to_string()
             .pad(
                 3 + self.mantissas + (self.mantissas != 0) as usize,
                 ' ',
