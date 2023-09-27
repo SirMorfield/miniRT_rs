@@ -19,6 +19,14 @@ impl Resolution {
         return self.aa.get().sqrt() as usize;
     }
     pub fn print(self) {
-        println!("{} {}", self.width, self.height);
+        println!("Resolution:");
+        println!("  width    : {}", self.width.get());
+        println!("  height   : {}", self.height.get());
+        println!("  aa       : {}", self.aa.get());
+        println!("  pixels   : {}", self.width.get() * self.height.get());
+        println!(
+            "  subpixels: {}",
+            self.width.get() * self.height.get() * self.aa.get()
+        );
     }
 }
