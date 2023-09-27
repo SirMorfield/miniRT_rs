@@ -140,7 +140,6 @@ pub struct Octree<T> {
     aabb: AABB,
     children: Vec<Octree<T>>,
     shapes: Vec<T>,
-    pub shapes_count: usize,
 }
 
 impl<T> Octree<T>
@@ -151,7 +150,6 @@ where
         let mut this = Self {
             aabb: AABB::new(Vec3::homogeneous(f32::MIN), Vec3::homogeneous(f32::MAX)),
             children: Vec::new(),
-            shapes_count: shapes.len(),
             shapes,
         };
         if this.shapes.len() != 0 {
@@ -206,7 +204,35 @@ where
 
     #[allow(dead_code)]
     pub fn shapes_count(&self) -> usize {
-        return self.shapes_count;
+        let mut count = self.shapes.len();
+        for child in &self.children {
+            count += child.shapes_count();
+        }
+        return count;
+    }
+
+    #[allow(dead_code)]
+    pub fn print(&self, summary: bool, max_depth: usize) {
+        self.print_depth(0, self.shapes_count(), summary, max_depth);
+    }
+    fn print_depth(&self, depth: usize, top_level_shapes: usize, summary: bool, max_depth: usize) {
+        if depth > max_depth {
+            return;
+        }
+        let indent = " ".repeat(depth * 4);
+
+        let shapes = self.shapes_count();
+        let relative =
+            "#".repeat(((shapes as f32 / top_level_shapes as f32) * 100 as f32) as usize);
+        if !summary || (summary && (shapes != 0 && relative.len() > 1)) {
+            println!(
+                "{indent} (depth: {depth} total: {shapes} own: {}) {relative}",
+                self.shapes.len(),
+            );
+        }
+        for child in &self.children {
+            child.print_depth(depth + 1, top_level_shapes, summary, max_depth);
+        }
     }
 
     fn new_sized(aabb: AABB) -> Self {
@@ -214,7 +240,6 @@ where
             aabb,
             children: Vec::new(),
             shapes: Vec::new(),
-            shapes_count: 0,
         }
     }
 

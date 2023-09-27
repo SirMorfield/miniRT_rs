@@ -1,5 +1,6 @@
 extern crate bmp;
 extern crate num_integer;
+
 mod camera;
 mod frame_buffer;
 mod helpers;
@@ -92,6 +93,7 @@ fn main() {
         PowerOf2::new(4).unwrap(),
     );
     resolution.print();
+    // scene.triangles.print(true, 9);
     let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
