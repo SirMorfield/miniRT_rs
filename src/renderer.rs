@@ -1,7 +1,7 @@
 use crate::camera::Camera;
 use crate::light::Light;
 use crate::resolution::Resolution;
-use crate::scene::Scene;
+use crate::scene_readers::rt::Scene;
 use crate::util::{Hit, Ray};
 use crate::vector::Vec3;
 
