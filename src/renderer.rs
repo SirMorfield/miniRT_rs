@@ -40,54 +40,25 @@ impl Renderer {
     }
 
     pub fn hit(&self, scene: &Scene, ray: &Ray) -> Option<Hit> {
-        let mut hit: Option<Hit> = None;
-
-        for triangle in &scene.triangles {
-            let triangle_hit = triangle.hit(&ray);
-            if !triangle_hit {
-                continue;
-            }
-            let info = triangle.hit_info(&ray);
-
-            match hit {
-                None => hit = Some(info),
-                Some(hit_info) => {
-                    if info.dist < hit_info.dist {
-                        hit = Some(info);
-                    }
-                }
-            }
-        }
-        return hit;
+        return scene.triangles.hit(&ray);
     }
 
     // TODO: move to Hit
     pub fn get_color(&self, scene: &Scene, hit: &Hit) -> Vec3<u8> {
-        let mut acc = Vec3::homogeneous(0 as u8);
+        let mut acc = Vec3::homogeneous(0.0);
+        let mut additions: usize = 0;
 
         for light in &scene.lights {
             if !self.is_clear_path(scene, &hit.point, &light) {
                 continue;
             }
-            let relative = light.color * light.relative_intensity(&hit.point, &hit.normal);
-            // todo this should be done better
-            if (u8::MAX - acc.x) < relative.x {
-                acc.x = u8::MAX;
-            } else {
-                acc.x += relative.x;
-            }
-            if (u8::MAX - acc.y) < relative.y {
-                acc.y = u8::MAX;
-            } else {
-                acc.y += relative.y;
-            }
-            if (u8::MAX - acc.z) < relative.z {
-                acc.z = u8::MAX;
-            } else {
-                acc.z += relative.z;
-            }
+
+            let relative = light.as_float() * light.relative_intensity(&hit.point, &hit.normal);
+            acc += relative;
+            additions += 1;
         }
-        return acc;
+        acc /= additions as f32;
+        return Vec3::new(acc.x as u8, acc.y as u8, acc.z as u8);
     }
 
     fn is_clear_path(&self, scene: &Scene, point: &Vec3<f32>, light: &Light) -> bool {
@@ -134,10 +105,13 @@ impl Renderer {
                 let hit = self.hit(scene, &ray);
                 match hit {
                     Some(hit) => colors.push(self.get_color(scene, &hit)),
-                    None => colors.push(scene.background_color),
+                    None => (),
                 }
             }
         }
-        return Self::average_color(&colors);
+        if colors.len() == 0 {
+            return scene.void();
+        }
+        return Self::average_color(&colors) + scene.ambient.absolute_color();
     }
 }

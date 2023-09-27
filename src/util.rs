@@ -1,4 +1,4 @@
-use crate::vector::Vec3;
+use crate::{octree::AABB, vector::Vec3};
 
 pub struct Ray {
     pub origin: Vec3<f32>,
@@ -35,6 +35,15 @@ impl Hit {
             color,
         }
     }
+    pub fn replace_if_closer(&mut self, other: Hit) {
+        if other.dist < self.dist {
+            self.dist = other.dist;
+            self.origin = other.origin;
+            self.point = other.point;
+            self.normal = other.normal;
+            self.color = other.color;
+        }
+    }
 }
 
 pub fn correct_normal(normal: Vec3<f32>, dir: &Vec3<f32>) -> Vec3<f32> {
@@ -44,4 +53,12 @@ pub fn correct_normal(normal: Vec3<f32>, dir: &Vec3<f32>) -> Vec3<f32> {
     } else {
         normal
     };
+}
+
+pub trait Shape {
+    fn is_inside_aabb(&self, aabb: &AABB) -> bool;
+    fn t(&self, ray: &Ray) -> f32;
+    fn hit(&self, ray: &Ray) -> bool;
+    fn hit_info(&self, ray: &Ray) -> Hit;
+    fn aabb(&self) -> AABB;
 }

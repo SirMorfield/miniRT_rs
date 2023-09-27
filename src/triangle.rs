@@ -1,7 +1,7 @@
-use crate::{
-    util::{correct_normal, Hit, Ray},
-    vector::Vec3,
-};
+use crate::num;
+use crate::octree::AABB;
+use crate::util::{correct_normal, Hit, Ray, Shape};
+use crate::vector::Vec3;
 
 pub struct Triangle {
     pub p0: Vec3<f32>,
@@ -21,7 +21,9 @@ impl Triangle {
         let edge2 = self.p2 - self.p0;
         return (edge1, edge2);
     }
+}
 
+impl Shape for Triangle {
     fn t(&self, ray: &Ray) -> f32 {
         // #ifndef USE_EIGEN
         let (edge1, edge2) = self.edges();
@@ -53,16 +55,34 @@ impl Triangle {
         return t;
     }
 
-    pub fn hit(&self, ray: &Ray) -> bool {
+    fn hit(&self, ray: &Ray) -> bool {
         self.t(ray) > f32::EPSILON
     }
 
-    pub fn hit_info(&self, ray: &Ray) -> Hit {
+    fn hit_info(&self, ray: &Ray) -> Hit {
         let t = self.t(ray);
         let dist = (ray.dir * t).length(); // TODO
         let (edge1, edge2) = self.edges();
         let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
 
         return Hit::new(dist, ray.origin, ray.origin * dist, normal, self.color);
+    }
+
+    fn is_inside_aabb(&self, aabb: &AABB) -> bool {
+        return aabb.is_inside_all(&[self.p0, self.p1, self.p2]);
+    }
+
+    fn aabb(&self) -> AABB {
+        let min = Vec3::new(
+            num::minn(&[self.p0.x, self.p1.x, self.p2.x]),
+            num::minn(&[self.p0.y, self.p1.y, self.p2.y]),
+            num::minn(&[self.p0.z, self.p1.z, self.p2.z]),
+        );
+        let max = Vec3::new(
+            num::maxn(&[self.p0.x, self.p1.x, self.p2.x]),
+            num::maxn(&[self.p0.y, self.p1.y, self.p2.y]),
+            num::maxn(&[self.p0.z, self.p1.z, self.p2.z]),
+        );
+        return AABB::new(min, max);
     }
 }

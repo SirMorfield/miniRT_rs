@@ -1,10 +1,12 @@
 extern crate bmp;
 extern crate num_integer;
+
 mod camera;
 mod frame_buffer;
 mod helpers;
 mod light;
 mod num;
+mod octree;
 mod progress_logger;
 mod renderer;
 mod resolution;
@@ -68,7 +70,7 @@ fn render_scene(
     let num_threads = std::thread::available_parallelism()
         .unwrap_or(NonZeroUsize::new(8).unwrap())
         .get();
-    println!("Using {} threads", &num_threads);
+    println!("Using {num_threads} threads");
 
     for _ in 0..num_threads {
         let _ = span_thread(
@@ -91,6 +93,7 @@ fn main() {
         PowerOf2::new(4).unwrap(),
     );
     resolution.print();
+    // scene.triangles.print(true, true, 10);
     let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
