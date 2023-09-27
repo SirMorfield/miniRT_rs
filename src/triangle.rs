@@ -1,3 +1,4 @@
+use crate::num;
 use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Ray, Shape};
 use crate::vector::Vec3;
@@ -73,14 +74,14 @@ impl Shape for Triangle {
 
     fn aabb(&self) -> AABB {
         let min = Vec3::new(
-            self.p0.x.min(self.p1.x.min(self.p2.x)),
-            self.p0.y.min(self.p1.y.min(self.p2.y)),
-            self.p0.z.min(self.p1.z.min(self.p2.z)),
+            num::minn(&[self.p0.x, self.p1.x, self.p2.x]),
+            num::minn(&[self.p0.y, self.p1.y, self.p2.y]),
+            num::minn(&[self.p0.z, self.p1.z, self.p2.z]),
         );
         let max = Vec3::new(
-            self.p0.x.max(self.p1.x.max(self.p2.x)),
-            self.p0.y.max(self.p1.y.max(self.p2.y)),
-            self.p0.z.max(self.p1.z.max(self.p2.z)),
+            num::maxn(&[self.p0.x, self.p1.x, self.p2.x]),
+            num::maxn(&[self.p0.y, self.p1.y, self.p2.y]),
+            num::maxn(&[self.p0.z, self.p1.z, self.p2.z]),
         );
         return AABB::new(min, max);
     }

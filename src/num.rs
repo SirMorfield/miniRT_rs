@@ -111,6 +111,33 @@ impl PowerOf2 {
     }
 }
 
+pub fn minn<T>(arr: &[T]) -> T
+where
+    T: PartialOrd + Copy,
+{
+    let mut min = arr[0];
+    arr.iter().for_each(|f| {
+        if f < &min {
+            min = *f;
+        }
+    });
+
+    return min;
+}
+
+pub fn maxn<T>(arr: &[T]) -> T
+where
+    T: PartialOrd + Copy,
+{
+    let mut max = arr[0];
+    arr.iter().for_each(|f| {
+        if f > &max {
+            max = *f;
+        }
+    });
+    return max;
+}
+
 pub mod f32 {
     pub fn min(a: f32, b: f32) -> f32 {
         if a < b {
