@@ -1,5 +1,5 @@
 use crate::light::Light;
-use crate::num::PositiveNonzeroF32;
+use crate::num::Float0to1;
 use crate::octree::Octree;
 use crate::vector::Vec3;
 use crate::{camera::Camera, triangle::Triangle};
@@ -48,34 +48,64 @@ fn parse_triangle(t: Vec<&str>) -> Option<Triangle> {
     return Some(Triangle::new(v0, v1, v2, color));
 }
 
-fn to_light(blocks: Vec<&str>) -> Option<Light> {
+fn parse_light(blocks: Vec<&str>) -> Option<Light> {
     if blocks.get(0) != Some(&"l") {
         return None;
     }
 
     let origin = parse_vec3(blocks.get(1)?, false)?;
     let intensity = blocks.get(2)?.parse::<f32>().ok()?;
-    let intensity = PositiveNonzeroF32::new(intensity)?;
+    let intensity = Float0to1::new(intensity)?;
     let color = parse_rgb(blocks.get(3)?)?;
 
     return Some(Light::new(origin, intensity, color));
+}
+
+fn parse_camera(blocks: Vec<&str>) -> Option<Camera> {
+    if blocks.get(0) != Some(&"c") {
+        return None;
+    }
+    let origin = parse_vec3(blocks.get(1)?, false)?;
+    let direction = parse_vec3(blocks.get(2)?, true)?;
+    let fov = blocks.get(3)?.parse::<f32>().ok()?;
+
+    return Some(Camera::new(origin, direction, fov));
+}
+
+fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
+    if blocks.get(0) != Some(&"A") {
+        return None;
+    }
+    if blocks.len() != 3 {
+        return None;
+    }
+    let intensity = blocks.get(1)?.parse::<f32>().ok()?;
+    let color = parse_rgb(blocks.get(2)?)?;
+
+    return Some(Light::new(
+        Vec3::homogeneous(0.0),
+        Float0to1::new(intensity)?,
+        color,
+    ));
 }
 
 pub struct Scene {
     pub camera: Camera, // TODO: should be plural
     pub triangles: Octree<Triangle>,
     pub lights: Vec<Light>,
-    pub background_color: Vec3<u8>,
+    pub ambient: Light,
 }
 
 impl Scene {
     pub fn default() -> Self {
         Self {
             triangles: Octree::new(vec![]),
-            background_color: Vec3::new(0, 0, 0),
+            ambient: Light::new(
+                Vec3::homogeneous(0.0),
+                Float0to1::new(0.0).unwrap(),
+                Vec3::homogeneous(0),
+            ),
             lights: Vec::new(),
-
-            // c   35.0,18.0,31.0         -0.7247,0.0,-0.78087         70
             camera: Camera::new(
                 Vec3::new(35.0, 18.0, 31.0),
                 Vec3::new(-0.7247, -0.18, -0.78087),
@@ -105,6 +135,10 @@ impl Scene {
         return Ok(self_);
     }
 
+    pub fn void(&self) -> Vec3<u8> {
+        Vec3::homogeneous(0)
+    }
+
     fn parse_line(&mut self, line: &str, triangles: &mut Vec<Triangle>) -> Result<(), ()> {
         if line.len() == 0 {
             return Ok(());
@@ -120,8 +154,16 @@ impl Scene {
                 Ok(())
             }
             "l" => {
-                let light = to_light(parts).ok_or(())?;
+                let light = parse_light(parts).ok_or(())?;
                 self.lights.push(light);
+                Ok(())
+            }
+            "c" => {
+                self.camera = parse_camera(parts).ok_or(())?;
+                Ok(())
+            }
+            "A" => {
+                self.ambient = parse_ambient(parts).ok_or(())?;
                 Ok(())
             }
             _ => return Ok(()),

@@ -105,10 +105,13 @@ impl Renderer {
                 let hit = self.hit(scene, &ray);
                 match hit {
                     Some(hit) => colors.push(self.get_color(scene, &hit)),
-                    None => colors.push(scene.background_color),
+                    None => (),
                 }
             }
         }
-        return Self::average_color(&colors);
+        if colors.len() == 0 {
+            return scene.void();
+        }
+        return Self::average_color(&colors) + scene.ambient.absolute_color();
     }
 }

@@ -1,4 +1,4 @@
-use crate::num::PositiveNonzeroF32;
+use crate::num::Float0to1;
 use crate::vector::Vec3;
 
 pub struct Light {
@@ -8,12 +8,19 @@ pub struct Light {
 }
 
 impl Light {
-    pub fn new(origin: Vec3<f32>, intensity: PositiveNonzeroF32, color: Vec3<u8>) -> Self {
+    pub fn new(origin: Vec3<f32>, intensity: Float0to1, color: Vec3<u8>) -> Self {
         Self {
             origin,
             intensity: intensity.get(),
             color,
         }
+    }
+    pub fn absolute_color(&self) -> Vec3<u8> {
+        return Vec3::new(
+            (self.color.x as f32 * self.intensity) as u8,
+            (self.color.y as f32 * self.intensity) as u8,
+            (self.color.z as f32 * self.intensity) as u8,
+        );
     }
     pub fn relative_intensity(&self, point: &Vec3<f32>, normal: &Vec3<f32>) -> f32 {
         let to_light = (self.origin - *point).to_normalized();
