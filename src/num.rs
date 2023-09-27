@@ -110,3 +110,42 @@ impl PowerOf2 {
         self.0
     }
 }
+
+pub mod f32 {
+    pub fn min(a: f32, b: f32) -> f32 {
+        if a < b {
+            a
+        } else {
+            b
+        }
+    }
+    pub fn max(a: f32, b: f32) -> f32 {
+        if a > b {
+            a
+        } else {
+            b
+        }
+    }
+}
+
+pub trait MinMax {
+    fn min(&self, other: Self) -> Self;
+    fn max(&self, other: Self) -> Self;
+}
+
+impl MinMax for f32 {
+    fn min(&self, other: Self) -> Self {
+        if self < &other {
+            *self
+        } else {
+            other
+        }
+    }
+    fn max(&self, other: Self) -> Self {
+        if self > &other {
+            *self
+        } else {
+            other
+        }
+    }
+}
