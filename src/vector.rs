@@ -5,7 +5,6 @@ pub struct Vec3<T> {
     pub z: T,
 }
 
-// implement add for Vec3
 impl<T> std::ops::Add for Vec3<T>
 where
     T: std::ops::Add<Output = T>,
@@ -20,7 +19,6 @@ where
     }
 }
 
-// implement sub for Vec3
 impl<T> std::ops::Sub for Vec3<T>
 where
     T: std::ops::Sub<Output = T>,
@@ -35,7 +33,6 @@ where
     }
 }
 
-// implement mul for Vec3
 impl<T> std::ops::Mul for Vec3<T>
 where
     T: std::ops::Mul<Output = T> + Copy,
@@ -50,7 +47,6 @@ where
     }
 }
 
-// implement div for Vec3
 impl<T> std::ops::Div for Vec3<T>
 where
     T: std::ops::Div<Output = T> + Copy,
@@ -65,7 +61,6 @@ where
     }
 }
 
-// implement add assign for Vec3
 impl<T> std::ops::AddAssign for Vec3<T>
 where
     T: std::ops::AddAssign,
@@ -77,7 +72,6 @@ where
     }
 }
 
-// implement sub assign for Vec3
 impl<T> std::ops::SubAssign for Vec3<T>
 where
     T: std::ops::SubAssign,
@@ -89,7 +83,6 @@ where
     }
 }
 
-// implement mul assign for Vec3
 impl<T> std::ops::MulAssign for Vec3<T>
 where
     T: std::ops::MulAssign,
@@ -101,7 +94,6 @@ where
     }
 }
 
-// implement div assign for Vec3
 impl<T> std::ops::DivAssign for Vec3<T>
 where
     T: std::ops::DivAssign,
@@ -113,7 +105,6 @@ where
     }
 }
 
-// implement neg for Vec3
 impl<T> std::ops::Neg for Vec3<T>
 where
     T: std::ops::Neg<Output = T>,
