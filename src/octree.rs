@@ -212,10 +212,17 @@ where
     }
 
     #[allow(dead_code)]
-    pub fn print(&self, summary: bool, max_depth: usize) {
-        self.print_depth(0, self.shapes_count(), summary, max_depth);
+    pub fn print(&self, summary: bool, sort: bool, max_depth: usize) {
+        self.print_depth(0, self.shapes_count(), summary, sort, max_depth);
     }
-    fn print_depth(&self, depth: usize, top_level_shapes: usize, summary: bool, max_depth: usize) {
+    fn print_depth(
+        &self,
+        depth: usize,
+        top_level_shapes: usize,
+        sort: bool,
+        summary: bool,
+        max_depth: usize,
+    ) {
         if depth > max_depth {
             return;
         }
@@ -224,14 +231,31 @@ where
         let shapes = self.shapes_count();
         let relative =
             "#".repeat(((shapes as f32 / top_level_shapes as f32) * 100 as f32) as usize);
-        if !summary || (summary && (shapes != 0 && relative.len() > 1)) {
+        if shapes != 0 && (!summary || relative.len() > 1) {
             println!(
                 "{indent} (depth: {depth} total: {shapes} own: {}) {relative}",
                 self.shapes.len(),
             );
         }
-        for child in &self.children {
-            child.print_depth(depth + 1, top_level_shapes, summary, max_depth);
+
+        // printing the box with most shapes first
+        let mut scores: Vec<(usize, u64)> = self
+            .children
+            .iter()
+            .enumerate()
+            .map(|(i, child)| (i, child.shapes_count() as u64))
+            .collect();
+        if sort {
+            scores.sort_by(|(_, a), (_, b)| b.cmp(a));
+        }
+        for (i, _) in scores {
+            self.children.get(i).unwrap().print_depth(
+                depth + 1,
+                top_level_shapes,
+                sort,
+                summary,
+                max_depth,
+            );
         }
     }
 
