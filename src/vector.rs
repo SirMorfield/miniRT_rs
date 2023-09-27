@@ -5,61 +5,28 @@ pub struct Vec3<T> {
     pub z: T,
 }
 
-impl<T> std::ops::Add for Vec3<T>
-where
-    T: std::ops::Add<Output = T>,
-{
-    type Output = Self;
-    fn add(self, rhs: Self) -> Self {
-        return Vec3 {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-            z: self.z + rhs.z,
-        };
-    }
+macro_rules! impl_binary_operations {
+    ($Op:ident $Fn:ident $OpSymbol:tt) => {
+        impl<T> std::ops::$Op for Vec3<T>
+        where
+            T: std::ops::$Op<Output = T>,
+        {
+            type Output = Self;
+            fn $Fn(self, rhs: Self) -> Self {
+				return Vec3 {
+					x: self.x $OpSymbol rhs.x,
+					y: self.y $OpSymbol rhs.y,
+					z: self.z $OpSymbol rhs.z,
+				};
+			}
+        }
+    };
 }
 
-impl<T> std::ops::Sub for Vec3<T>
-where
-    T: std::ops::Sub<Output = T>,
-{
-    type Output = Self;
-    fn sub(self, rhs: Self) -> Self {
-        return Vec3 {
-            x: self.x - rhs.x,
-            y: self.y - rhs.y,
-            z: self.z - rhs.z,
-        };
-    }
-}
-
-impl<T> std::ops::Mul for Vec3<T>
-where
-    T: std::ops::Mul<Output = T> + Copy,
-{
-    type Output = Self;
-    fn mul(self, rhs: Self) -> Self {
-        return Vec3 {
-            x: self.x * rhs.x,
-            y: self.y * rhs.y,
-            z: self.z * rhs.z,
-        };
-    }
-}
-
-impl<T> std::ops::Div for Vec3<T>
-where
-    T: std::ops::Div<Output = T> + Copy,
-{
-    type Output = Self;
-    fn div(self, rhs: Self) -> Self {
-        return Vec3 {
-            x: self.x / rhs.x,
-            y: self.y / rhs.y,
-            z: self.z / rhs.z,
-        };
-    }
-}
+impl_binary_operations!(Add add +);
+impl_binary_operations!(Sub sub -);
+impl_binary_operations!(Mul mul *);
+impl_binary_operations!(Div div /);
 
 impl<T> std::ops::AddAssign for Vec3<T>
 where
