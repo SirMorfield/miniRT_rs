@@ -69,7 +69,7 @@ fn render_scene(
     let num_threads = std::thread::available_parallelism()
         .unwrap_or(NonZeroUsize::new(8).unwrap())
         .get();
-    println!("Using {} threads", &num_threads);
+    println!("Using {num_threads} threads");
 
     for _ in 0..num_threads {
         let _ = span_thread(
