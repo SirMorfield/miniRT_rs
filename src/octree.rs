@@ -3,6 +3,7 @@ use crate::util::{Hit, Ray, Shape};
 use crate::vector::Vec3;
 use std::vec::Vec;
 
+#[derive(Debug)]
 pub struct AABB {
     min: Vec3<f32>,
     max: Vec3<f32>,
@@ -51,6 +52,7 @@ impl AABB {
             && point.z >= self.min.z
             && point.z <= self.max.z;
     }
+
     pub fn is_inside_all(&self, points: &[Vec3<f32>]) -> bool {
         points.iter().all(|point| self.is_inside(point))
     }
@@ -89,42 +91,82 @@ impl AABB {
     }
 }
 
+#[cfg(test)]
+mod aabb_test {
+    use crate::octree::AABB;
+    use crate::vector::Vec3;
+
+    #[test]
+    fn real() {
+        let aabb = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
+        assert_eq!(aabb.is_inside(&Vec3::new(0.5, 0.5, 0.5)), true);
+        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 0.0)), true);
+        assert_eq!(aabb.is_inside(&Vec3::new(1.0, 1.0, 1.0)), true);
+        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 1.0)), true);
+
+        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 1.1)), false);
+        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, -0.1)), false);
+    }
+    #[test]
+    fn infinity() {
+        let aabb = AABB::new(
+            Vec3::homogeneous(-f32::INFINITY),
+            Vec3::homogeneous(f32::INFINITY),
+        );
+        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 0.0)), true);
+        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::MAX)), true);
+        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::MIN)), true);
+        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::INFINITY)), true);
+        assert_eq!(aabb.is_inside(&Vec3::homogeneous(-f32::INFINITY)), true);
+    }
+}
+
+// This number was chosen by a dice
 const MAX_SHAPES_PER_OCTREE: usize = 10;
 
 /// Usage:
-/// let mut octree = Octree::new();
-/// for shape in shapes {
-///    octree.push(shape);
-/// }
-/// octree.shrink_to_fit();
-/// octree.subdivide();
-///
+/// ```
+/// let shapes = vec![Triangle::new(
+///    Vec3::new(0.0, 0.0, 0.0),
+///    Vec3::new(1.0, 0.0, 0.0),
+///    Vec3::new(0.0, 1.0, 0.0),
+///    Vec3::new(255, 0, 0),
+/// )];
+/// let octree = Octree::new(shapes);
+/// assert_eq!(octree.shapes_count(), 1);
+///```
 
 pub struct Octree<T> {
     aabb: AABB,
     children: Vec<Octree<T>>,
     shapes: Vec<T>,
+    pub shapes_count: usize,
 }
 
 impl<T> Octree<T>
 where
     T: Shape,
 {
-    pub fn new() -> Self {
-        Self {
-            aabb: AABB::new(
-                Vec3::homogeneous(-f32::INFINITY),
-                Vec3::homogeneous(f32::INFINITY),
-            ),
+    pub fn new(shapes: Vec<T>) -> Self {
+        let mut this = Self {
+            aabb: AABB::new(Vec3::homogeneous(f32::MIN), Vec3::homogeneous(f32::MAX)),
             children: Vec::new(),
-            shapes: Vec::new(),
+            shapes_count: shapes.len(),
+            shapes,
+        };
+        if this.shapes.len() != 0 {
+            this.shrink_to_fit();
+            this.subdivide();
+            this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
         }
-    }
-    pub fn push(&mut self, shape: T) {
-        self.shapes.push(shape);
+        for shape in &this.shapes {
+            assert!(shape.is_inside_aabb(&this.aabb));
+            // println!("shape: {:?}", shape.aabb());
+        }
+        return this;
     }
 
-    pub fn shrink_to_fit(&mut self) {
+    fn shrink_to_fit(&mut self) {
         let mut min = self.aabb.min;
         let mut max = self.aabb.max;
 
@@ -143,7 +185,7 @@ where
         self.aabb = AABB::new(max, min);
     }
 
-    pub fn subdivide(&mut self) {
+    fn subdivide(&mut self) {
         if self.children.len() == 0 {
             self.children = self
                 .aabb
@@ -153,10 +195,21 @@ where
                 .collect();
         }
 
-        let mut shapes = Vec::new();
+        let shapes_count = self.shapes.len();
+        let mut inserted = 0;
+
+        let mut shapes = Vec::with_capacity(MAX_SHAPES_PER_OCTREE);
         std::mem::swap(&mut self.shapes, &mut shapes);
+
         for shape in shapes {
-            self.insert(shape).unwrap();
+            if self.can_insert(&shape) {
+                self.insert_unsafe(shape);
+                inserted += 1;
+            }
+        }
+        let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
+        if percentage < 90.0 {
+            panic!("Inserted {inserted} out of {shapes_count} shapes ({percentage}");
         }
     }
 
@@ -198,11 +251,17 @@ where
         return closest;
     }
 
+    #[allow(dead_code)]
+    pub fn shapes_count(&self) -> usize {
+        return self.shapes_count;
+    }
+
     fn new_sized(aabb: AABB) -> Self {
         Self {
             aabb,
             children: Vec::new(),
             shapes: Vec::new(),
+            shapes_count: 0,
         }
     }
 
@@ -226,13 +285,5 @@ where
             }
         }
         self.shapes.push(shape);
-    }
-
-    fn insert(&mut self, shape: T) -> Result<(), &'static str> {
-        // if !self.can_insert(&shape) { // TODO enable this
-        //     return Err("Shape is not inside AABB");
-        // }
-        self.insert_unsafe(shape);
-        return Ok(());
     }
 }

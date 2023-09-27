@@ -71,7 +71,7 @@ pub struct Scene {
 impl Scene {
     pub fn default() -> Self {
         Self {
-            triangles: Octree::new(),
+            triangles: Octree::new(vec![]),
             background_color: Vec3::new(0, 0, 0),
             lights: Vec::new(),
 
@@ -87,13 +87,13 @@ impl Scene {
     pub fn new(path: &std::path::Path) -> Result<Self, String> {
         let file = std::fs::File::open(path).or(Err("Could not open file"))?;
         let lines = io::BufReader::new(file).lines();
-
+        let mut triangles: Vec<Triangle> = Vec::new();
         let mut self_ = Self::default();
         // TODO: Egypt is never far
         for line in lines {
             match line {
                 Ok(line) => {
-                    match self_.parse_line(&line) {
+                    match self_.parse_line(&line, &mut triangles) {
                         Ok(_) => (),
                         Err(_) => return Err("Could not parse line: ".to_string() + &line),
                     };
@@ -101,13 +101,11 @@ impl Scene {
                 Err(_) => return Err("Could not read line".to_string()),
             }
         }
-
-        self_.triangles.shrink_to_fit();
-        self_.triangles.subdivide();
+        self_.triangles = Octree::new(triangles);
         return Ok(self_);
     }
 
-    fn parse_line(&mut self, line: &str) -> Result<(), ()> {
+    fn parse_line(&mut self, line: &str, triangles: &mut Vec<Triangle>) -> Result<(), ()> {
         if line.len() == 0 {
             return Ok(());
         }
@@ -118,7 +116,7 @@ impl Scene {
         return match parts[0] {
             "tr" => {
                 let triangle = parse_triangle(parts).ok_or(())?;
-                self.triangles.push(triangle);
+                triangles.push(triangle);
                 Ok(())
             }
             "l" => {
