@@ -1,3 +1,4 @@
+use super::SceneTrait;
 use crate::light::Light;
 use crate::num::Float0to1;
 use crate::octree::Octree;
@@ -117,6 +118,9 @@ impl Default for Scene {
 
 impl Scene {
     pub fn new(path: &std::path::Path) -> Result<Self, String> {
+        if !path.display().to_string().ends_with(".rt") {
+            return Err("File must end with .rt".into());
+        }
         let file = std::fs::File::open(path).or(Err("Could not open file"))?;
         let lines = io::BufReader::new(file).lines();
         let mut triangles: Vec<Triangle> = Vec::new();
@@ -130,10 +134,6 @@ impl Scene {
         }
         self_.triangles = Octree::new(triangles);
         return Ok(self_);
-    }
-
-    pub fn void(&self) -> Vec3<u8> {
-        Vec3::homogeneous(0)
     }
 
     fn parse_line(&mut self, line: &str, triangles: &mut Vec<Triangle>) -> Result<(), ()> {
@@ -165,5 +165,20 @@ impl Scene {
             }
             _ => return Ok(()),
         };
+    }
+}
+
+impl SceneTrait for Scene {
+    fn camera(&self) -> &Camera {
+        &self.camera
+    }
+    fn lights(&self) -> &Vec<Light> {
+        &self.lights
+    }
+    fn ambient(&self) -> &Light {
+        &self.ambient
+    }
+    fn void(&self) -> Vec3<u8> {
+        Vec3::homogeneous(0)
     }
 }
