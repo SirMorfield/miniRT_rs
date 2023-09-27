@@ -1,4 +1,4 @@
-# A simple ray tracer in Rust
+# My first Rust project: a ray tracer
 
 It's based on https://github.com/SirMorfield/miniRT in CPP.
 
