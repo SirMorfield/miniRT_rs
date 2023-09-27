@@ -5,7 +5,7 @@ pub struct Vec3<T> {
     pub z: T,
 }
 
-macro_rules! impl_binary_operations {
+macro_rules! impl_overload {
     ($Op:ident $Fn:ident $OpSymbol:tt) => {
         impl<T> std::ops::$Op for Vec3<T>
         where
@@ -23,54 +23,29 @@ macro_rules! impl_binary_operations {
     };
 }
 
-impl_binary_operations!(Add add +);
-impl_binary_operations!(Sub sub -);
-impl_binary_operations!(Mul mul *);
-impl_binary_operations!(Div div /);
-
-impl<T> std::ops::AddAssign for Vec3<T>
-where
-    T: std::ops::AddAssign,
-{
-    fn add_assign(&mut self, rhs: Self) {
-        self.x += rhs.x;
-        self.y += rhs.y;
-        self.z += rhs.z;
-    }
+macro_rules! impl_overload_assign {
+	($Op:ident $Fn:ident $OpSymbol:tt) => {
+		impl<T> std::ops::$Op for Vec3<T>
+		where
+			T: std::ops::$Op,
+		{
+			fn $Fn(&mut self, rhs: Self) {
+				self.x $OpSymbol rhs.x;
+				self.y $OpSymbol rhs.y;
+				self.z $OpSymbol rhs.z;
+			}
+		}
+	};
 }
 
-impl<T> std::ops::SubAssign for Vec3<T>
-where
-    T: std::ops::SubAssign,
-{
-    fn sub_assign(&mut self, rhs: Self) {
-        self.x -= rhs.x;
-        self.y -= rhs.y;
-        self.z -= rhs.z;
-    }
-}
-
-impl<T> std::ops::MulAssign for Vec3<T>
-where
-    T: std::ops::MulAssign,
-{
-    fn mul_assign(&mut self, rhs: Self) {
-        self.x *= rhs.x;
-        self.y *= rhs.y;
-        self.z *= rhs.z;
-    }
-}
-
-impl<T> std::ops::DivAssign for Vec3<T>
-where
-    T: std::ops::DivAssign,
-{
-    fn div_assign(&mut self, rhs: Self) {
-        self.x /= rhs.x;
-        self.y /= rhs.y;
-        self.z /= rhs.z;
-    }
-}
+impl_overload!(Add add +);
+impl_overload!(Sub sub -);
+impl_overload!(Mul mul *);
+impl_overload!(Div div /);
+impl_overload_assign!(AddAssign add_assign +=);
+impl_overload_assign!(SubAssign sub_assign -=);
+impl_overload_assign!(MulAssign mul_assign *=);
+impl_overload_assign!(DivAssign div_assign /=);
 
 impl<T> std::ops::Neg for Vec3<T>
 where
