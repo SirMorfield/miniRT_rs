@@ -21,4 +21,11 @@ impl Light {
         let intensity = self.intensity * normal.dot(&to_light).max(0.0);
         return intensity.min(1.0);
     }
+    pub fn as_float(&self) -> Vec3<f32> {
+        return Vec3::new(
+            self.color.x as f32,
+            self.color.y as f32,
+            self.color.z as f32,
+        );
+    }
 }

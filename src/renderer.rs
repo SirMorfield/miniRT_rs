@@ -45,31 +45,20 @@ impl Renderer {
 
     // TODO: move to Hit
     pub fn get_color(&self, scene: &Scene, hit: &Hit) -> Vec3<u8> {
-        let mut acc = Vec3::homogeneous(0 as u8);
+        let mut acc = Vec3::homogeneous(0.0);
+        let mut additions: usize = 0;
 
         for light in &scene.lights {
             if !self.is_clear_path(scene, &hit.point, &light) {
                 continue;
             }
-            let relative = light.color * light.relative_intensity(&hit.point, &hit.normal);
-            // todo this should be done better
-            if (u8::MAX - acc.x) < relative.x {
-                acc.x = u8::MAX;
-            } else {
-                acc.x += relative.x;
-            }
-            if (u8::MAX - acc.y) < relative.y {
-                acc.y = u8::MAX;
-            } else {
-                acc.y += relative.y;
-            }
-            if (u8::MAX - acc.z) < relative.z {
-                acc.z = u8::MAX;
-            } else {
-                acc.z += relative.z;
-            }
+
+            let relative = light.as_float() * light.relative_intensity(&hit.point, &hit.normal);
+            acc += relative;
+            additions += 1;
         }
-        return acc;
+        acc /= additions as f32;
+        return Vec3::new(acc.x as u8, acc.y as u8, acc.z as u8);
     }
 
     fn is_clear_path(&self, scene: &Scene, point: &Vec3<f32>, light: &Light) -> bool {

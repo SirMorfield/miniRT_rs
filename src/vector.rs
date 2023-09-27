@@ -57,6 +57,20 @@ macro_rules! impl_overload_rhs {
 		}
 	};
 }
+macro_rules! impl_overload_rhs_assign {
+	($Op:ident $Fn:ident $OpSymbol:tt) => {
+		impl<T: $Op> $Op<T> for Vec3<T>
+		where
+			T: Clone + Copy,
+	{
+			fn $Fn(&mut self, rhs: T) {
+				self.x $OpSymbol rhs;
+				self.y $OpSymbol rhs;
+				self.z $OpSymbol rhs;
+			}
+		}
+	};
+}
 
 impl_overload!(Add add +);
 impl_overload!(Sub sub -);
@@ -70,6 +84,10 @@ impl_overload_rhs!(Add add +);
 impl_overload_rhs!(Sub sub -);
 impl_overload_rhs!(Mul mul *);
 impl_overload_rhs!(Div div /);
+impl_overload_rhs_assign!(AddAssign add_assign +=);
+impl_overload_rhs_assign!(SubAssign sub_assign -=);
+impl_overload_rhs_assign!(MulAssign mul_assign *=);
+impl_overload_rhs_assign!(DivAssign div_assign /=);
 
 impl<T> Neg for Vec3<T>
 where
@@ -81,18 +99,6 @@ where
             x: -self.x,
             y: -self.y,
             z: -self.z,
-        };
-    }
-}
-
-// TODO: remove
-impl Mul<f32> for Vec3<u8> {
-    type Output = Self;
-    fn mul(self, rhs: f32) -> Self {
-        return Vec3 {
-            x: (self.x as f32 * rhs) as u8,
-            y: (self.y as f32 * rhs) as u8,
-            z: (self.z as f32 * rhs) as u8,
         };
     }
 }
