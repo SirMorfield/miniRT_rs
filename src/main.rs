@@ -90,6 +90,7 @@ fn main() {
         NonZeroUsize::new(500).unwrap(),
         PowerOf2::new(4).unwrap(),
     );
+    resolution.print();
     let frame_buffer = Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap()));
     let mut progress_logger =
         ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);

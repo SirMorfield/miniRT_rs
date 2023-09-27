@@ -5,3 +5,6 @@ build-run-release:
 build-run-debug:
 	cargo build --bin minirt_rs
 	./target/debug/minirt_rs rt/dragon.rt
+
+update-dragon:
+	convert output.bmp media/dragon.png
