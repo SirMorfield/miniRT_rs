@@ -166,53 +166,6 @@ where
         return this;
     }
 
-    fn shrink_to_fit(&mut self) {
-        let mut min = self.aabb.min;
-        let mut max = self.aabb.max;
-
-        for shape in &self.shapes {
-            let shape_aabb = shape.aabb();
-
-            min.x = min.x.max(shape_aabb.min.x);
-            min.y = min.y.max(shape_aabb.min.y);
-            min.z = min.z.max(shape_aabb.min.z);
-
-            max.x = max.x.min(shape_aabb.max.x);
-            max.y = max.y.min(shape_aabb.max.y);
-            max.z = max.z.min(shape_aabb.max.z);
-        }
-
-        self.aabb = AABB::new(max, min);
-    }
-
-    fn subdivide(&mut self) {
-        if self.children.len() == 0 {
-            self.children = self
-                .aabb
-                .subdivide()
-                .into_iter()
-                .map(|aabb| Octree::new_sized(aabb))
-                .collect();
-        }
-
-        let shapes_count = self.shapes.len();
-        let mut inserted = 0;
-
-        let mut shapes = Vec::with_capacity(MAX_SHAPES_PER_OCTREE);
-        std::mem::swap(&mut self.shapes, &mut shapes);
-
-        for shape in shapes {
-            if self.can_insert(&shape) {
-                self.insert_unsafe(shape);
-                inserted += 1;
-            }
-        }
-        let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
-        if percentage < 90.0 {
-            panic!("Inserted {inserted} out of {shapes_count} shapes ({percentage}");
-        }
-    }
-
     pub fn hit(&self, ray: &Ray) -> Option<Hit> {
         if !self.aabb.hit(ray) {
             return None;
@@ -262,6 +215,53 @@ where
             children: Vec::new(),
             shapes: Vec::new(),
             shapes_count: 0,
+        }
+    }
+
+    fn shrink_to_fit(&mut self) {
+        let mut min = self.aabb.min;
+        let mut max = self.aabb.max;
+
+        for shape in &self.shapes {
+            let shape_aabb = shape.aabb();
+
+            min.x = min.x.max(shape_aabb.min.x);
+            min.y = min.y.max(shape_aabb.min.y);
+            min.z = min.z.max(shape_aabb.min.z);
+
+            max.x = max.x.min(shape_aabb.max.x);
+            max.y = max.y.min(shape_aabb.max.y);
+            max.z = max.z.min(shape_aabb.max.z);
+        }
+
+        self.aabb = AABB::new(max, min);
+    }
+
+    fn subdivide(&mut self) {
+        if self.children.len() == 0 {
+            self.children = self
+                .aabb
+                .subdivide()
+                .into_iter()
+                .map(|aabb| Octree::new_sized(aabb))
+                .collect();
+        }
+
+        let shapes_count = self.shapes.len();
+        let mut inserted = 0;
+
+        let mut shapes = Vec::with_capacity(MAX_SHAPES_PER_OCTREE);
+        std::mem::swap(&mut self.shapes, &mut shapes);
+
+        for shape in shapes {
+            if self.can_insert(&shape) {
+                self.insert_unsafe(shape);
+                inserted += 1;
+            }
+        }
+        let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
+        if percentage < 90.0 {
+            panic!("Inserted {inserted} out of {shapes_count} shapes ({percentage}");
         }
     }
 
