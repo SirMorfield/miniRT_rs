@@ -57,9 +57,6 @@ pub fn correct_normal(normal: Vec3<f32>, dir: &Vec3<f32>) -> Vec3<f32> {
 
 pub trait Shape {
     fn is_inside_aabb(&self, aabb: &AABB) -> bool;
-    fn t(&self, ray: &Ray) -> f32;
-    fn hit(&self, ray: &Ray) -> bool;
-    fn hit_info(&self, ray: &Ray) -> Hit;
-    // fn hit(&self, ray: &Ray) -> Option<Hit>; // TODO
+    fn hit(&self, ray: &Ray) -> Option<Hit>;
     fn aabb(&self) -> AABB;
 }

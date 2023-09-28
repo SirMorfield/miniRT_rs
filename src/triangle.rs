@@ -24,7 +24,7 @@ impl Triangle {
 }
 
 impl Shape for Triangle {
-    fn t(&self, ray: &Ray) -> f32 {
+    fn hit(&self, ray: &Ray) -> Option<Hit> {
         // #ifndef USE_EIGEN
         let (edge1, edge2) = self.edges();
         // let normal = edge1.cross(&edge2).normalized();
@@ -33,39 +33,27 @@ impl Shape for Triangle {
         let h = ray.dir.cross(&edge2);
         let a = edge1.dot(&h);
         if a > -f32::EPSILON && a < f32::EPSILON {
-            return 0.0; // Ray is parallel to this triangle.
+            return None; // Ray is parallel to this triangle.
         }
         let f = 1.0 / a;
         let s = ray.origin - self.p0;
         let u = f * s.dot(&h);
         if u < 0.0 || u > 1.0 {
-            return 0.0;
+            return None;
         }
         let q = s.cross(&edge1);
         let v = f * ray.dir.dot(&q);
         if v < 0.0 || u + v > 1.0 {
-            return 0.0;
+            return None;
         }
         let t = f * edge2.dot(&q);
-        // if t < f32::EPSILON {
-        //     // There is a line intersection but not a ray intersection
-        //     return 0.0;
-        // }
+        if t < f32::EPSILON {
+            // There is a line intersection but not a ray intersection
+            return None;
+        }
 
-        return t;
-    }
-
-    fn hit(&self, ray: &Ray) -> bool {
-        self.t(ray) > f32::EPSILON
-    }
-
-    fn hit_info(&self, ray: &Ray) -> Hit {
-        let t = self.t(ray);
-        let dist = (ray.dir * t).length(); // TODO
-        let (edge1, edge2) = self.edges();
         let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
-
-        return Hit::new(dist, ray.origin, ray.origin * dist, normal, self.color);
+        return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
     }
 
     fn is_inside_aabb(&self, aabb: &AABB) -> bool {
