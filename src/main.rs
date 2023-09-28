@@ -15,13 +15,14 @@ mod triangle;
 mod util;
 mod vector;
 
+use frame_buffer::Flip;
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
 use num::PowerOf2;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
-use scene_readers::rt::Scene;
+use scene_readers::obj::Scene;
 use std::num::NonZeroUsize;
 use std::path::Path;
 use std::path::PathBuf;
@@ -107,7 +108,8 @@ fn main() {
     progress_logger.log_end();
 
     let path = Path::new("output.bmp");
-    let frame_buffer = frame_buffer.lock().unwrap();
+    let mut frame_buffer = frame_buffer.lock().unwrap();
+    frame_buffer.flip(Flip::Horizontal);
     frame_buffer.save_as_bmp(path).unwrap();
     println!("Saved to: ./{}", path.display());
 }
