@@ -1,6 +1,5 @@
 extern crate bmp;
 extern crate num_integer;
-extern crate tobj;
 
 mod camera;
 mod frame_buffer;
