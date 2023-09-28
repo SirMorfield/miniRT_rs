@@ -15,3 +15,5 @@ Cargo.lock
 
 scene.bmp
 output.bmp
+
+.DS_Store
