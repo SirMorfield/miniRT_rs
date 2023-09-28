@@ -170,15 +170,14 @@ where
         let mut closest: Option<Hit> = None;
 
         for shape in &self.shapes {
-            if !shape.hit(ray) {
+            let hit = shape.hit(ray);
+            if hit.is_none() {
                 continue;
             }
-            let hit = shape.hit_info(ray);
-
             closest = match closest {
-                None => Some(hit),
+                None => hit,
                 Some(mut closest) => {
-                    closest.replace_if_closer(hit);
+                    closest.replace_if_closer(hit.unwrap());
                     Some(closest)
                 }
             }
