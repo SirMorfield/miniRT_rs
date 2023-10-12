@@ -1,4 +1,4 @@
-use super::SceneTrait;
+use super::Scene;
 use crate::light::Light;
 use crate::num::Float0to1;
 use crate::octree::Octree;
@@ -90,95 +90,60 @@ fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
     ));
 }
 
-pub struct Scene {
-    pub camera: Camera, // TODO: should be plural
-    pub triangles: Octree<Triangle>,
-    pub lights: Vec<Light>,
-    pub ambient: Light,
-}
-
-impl Default for Scene {
-    fn default() -> Self {
-        Self {
-            triangles: Octree::new(vec![]),
-            ambient: Light::new(
-                Vec3::homogeneous(0.0),
-                Float0to1::new(0.0).unwrap(),
-                Vec3::homogeneous(0),
-            ),
-            lights: Vec::new(),
-            camera: Camera::new(
-                Vec3::new(35.0, 18.0, 31.0),
-                Vec3::new(-0.7247, -0.18, -0.78087),
-                70.0,
-            ),
-        }
+pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
+    if !path.display().to_string().ends_with(".rt") {
+        return Err("File must end with .rt".into());
     }
-}
+    let file = std::fs::File::open(path).or(Err("Could not open file"))?;
+    let lines = io::BufReader::new(file).lines();
+    let mut triangles: Vec<Triangle> = Vec::new();
 
-impl Scene {
-    pub fn new(path: &std::path::Path) -> Result<Self, String> {
-        if !path.display().to_string().ends_with(".rt") {
-            return Err("File must end with .rt".into());
-        }
-        let file = std::fs::File::open(path).or(Err("Could not open file"))?;
-        let lines = io::BufReader::new(file).lines();
-        let mut triangles: Vec<Triangle> = Vec::new();
-        let mut self_ = Self::default();
+    let mut ambient = Light::new(
+        Vec3::homogeneous(0.0),
+        Float0to1::new(0.0).unwrap(),
+        Vec3::homogeneous(0),
+    );
+    let mut lights: Vec<Light> = Vec::new();
+    let mut camera = Camera::new(
+        Vec3::new(35.0, 18.0, 31.0),
+        Vec3::new(-0.7247, -0.18, -0.78087),
+        70.0,
+    );
 
-        for line in lines {
-            let line = line.map_err(|_| "Could not read line: ".to_string())?;
-            self_
-                .parse_line(&line, &mut triangles)
-                .map_err(|_| "Could not parse line: ".to_string() + &line)?;
-        }
-        self_.triangles = Octree::new(triangles);
-        return Ok(self_);
-    }
+    for line in lines {
+        let line = line.map_err(|_| "Could not read line".to_string())?;
 
-    fn parse_line(&mut self, line: &str, triangles: &mut Vec<Triangle>) -> Result<(), ()> {
         if line.len() == 0 {
-            return Ok(());
+            continue;
         }
         let parts: Vec<&str> = line.split_whitespace().collect();
         if parts.len() == 0 {
-            return Ok(());
+            continue;
         }
-        return match parts[0] {
+        match parts[0] {
             "tr" => {
-                let triangle = parse_triangle(parts).ok_or(())?;
-                triangles.push(triangle);
-                Ok(())
+                if let Some(t) = parse_triangle(parts) {
+                    triangles.push(t);
+                }
             }
             "l" => {
-                let light = parse_light(parts).ok_or(())?;
-                self.lights.push(light);
-                Ok(())
+                if let Some(l) = parse_light(parts) {
+                    lights.push(l);
+                }
             }
             "c" => {
-                self.camera = parse_camera(parts).ok_or(())?;
-                Ok(())
+                if let Some(c) = parse_camera(parts) {
+                    camera = c;
+                }
             }
             "A" => {
-                self.ambient = parse_ambient(parts).ok_or(())?;
-                Ok(())
+                if let Some(a) = parse_ambient(parts) {
+                    ambient = a;
+                }
             }
-            _ => return Ok(()),
-        };
+            _ => (),
+        }
     }
-}
-
-impl SceneTrait for Scene {
-    fn camera(&self) -> &Camera {
-        &self.camera
-    }
-    fn lights(&self) -> &Vec<Light> {
-        &self.lights
-    }
-    fn ambient(&self) -> &Light {
-        &self.ambient
-    }
-    fn void(&self) -> Vec3<u8> {
-        Vec3::homogeneous(0)
-    }
+    let triangles = Octree::new(triangles);
+    return Ok(Scene::new(camera, triangles, lights, ambient));
 }

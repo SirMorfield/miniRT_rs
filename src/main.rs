@@ -22,7 +22,7 @@ use num::PowerOf2;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
-use scene_readers::obj::Scene;
+use scene_readers::{get_scene, Scene};
 use std::num::NonZeroUsize;
 use std::path::Path;
 use std::path::PathBuf;
@@ -31,10 +31,10 @@ use std::sync::mpsc::Sender;
 use std::sync::{mpsc, Arc, Mutex};
 use vector::Vec3;
 
-fn get_rt_file() -> Option<PathBuf> {
+fn get_render_file() -> Option<PathBuf> {
     let argv = std::env::args().collect::<Vec<_>>();
     if argv.len() != 2 {
-        println!("Usage: {} <scene.rt>", argv.get(0).unwrap());
+        println!("Usage: {} <scene.[rt,obj,blend]>", argv.get(0).unwrap());
         return None;
     }
     Path::new(argv.get(1).unwrap()).canonicalize().ok()
@@ -86,8 +86,8 @@ fn render_scene(
 }
 
 fn main() {
-    let scene_path = get_rt_file().unwrap();
-    let scene = Scene::new(scene_path.as_path()).unwrap();
+    let scene_path = get_render_file().unwrap();
+    let scene = get_scene(&scene_path).unwrap();
     let resolution = Resolution::new(
         NonZeroUsize::new(500).unwrap(),
         NonZeroUsize::new(500).unwrap(),
