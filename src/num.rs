@@ -66,13 +66,13 @@ impl PositiveNonzeroF32 {
 #[derive(PartialEq, PartialOrd, Debug, Clone, Copy)]
 pub struct Float0to1(f32);
 impl Float0to1 {
-    pub fn new(value: f32) -> Option<Self> {
+    pub const fn new(value: f32) -> Option<Self> {
         match value {
             x if x < 0.0 || x > 1.0 => None,
             _ => Some(Float0to1(value)),
         }
     }
-    pub fn get(&self) -> f32 {
+    pub const fn get(&self) -> f32 {
         self.0
     }
 }
