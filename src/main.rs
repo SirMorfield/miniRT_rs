@@ -1,4 +1,5 @@
 extern crate bmp;
+extern crate ncollide3d;
 extern crate num_integer;
 
 mod camera;

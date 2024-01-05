@@ -4,7 +4,7 @@ build-run-release:
 
 build-run-debug:
 	cargo build --bin minirt_rs
-	./target/debug/minirt_rs rt/dragon.rt
+	./target/debug/minirt_rs obj/tree.obj
 
 update-dragon:
 	convert output.bmp media/dragon.png
