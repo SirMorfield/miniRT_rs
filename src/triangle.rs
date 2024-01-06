@@ -16,12 +16,14 @@ impl Triangle {
         Self { p0, p1, p2, color }
     }
 
+    #[allow(dead_code)]
     fn edges(&self) -> (Vec3<f32>, Vec3<f32>) {
         let edge1 = self.p1 - self.p0;
         let edge2 = self.p2 - self.p0;
         return (edge1, edge2);
     }
 
+    #[allow(dead_code)]
     fn hit_0(&self, ray: &Ray) -> Option<Hit> {
         // #ifndef USE_EIGEN
         let (edge1, edge2) = self.edges();
@@ -52,6 +54,68 @@ impl Triangle {
 
         let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
         return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
+    }
+
+    #[allow(dead_code)]
+    fn hit_1(&self, ray: &Ray) -> Option<Hit> {
+        // compute the plane's normal
+        let v0v1 = self.p1 - self.p0;
+        let v0v2 = self.p2 - self.p0;
+        // no need to normalize
+        let normal = v0v1.cross(&v0v2); // N
+
+        // Step 1: finding P
+        // check if the ray and plane are parallel.
+        let n_dot_ray_direction = normal.dot(&ray.dir);
+        if n_dot_ray_direction.abs() < f32::EPSILON {
+            return None; // they are parallel, so they don't intersect!
+        }
+
+        // compute d parameter using equation 2
+        let d = -normal.dot(&self.p0);
+
+        // compute t (equation 3)
+        let t = -(normal.dot(&ray.origin) + d) / n_dot_ray_direction;
+
+        // check if the triangle is behind the ray
+        if t < 0.0 {
+            return None;
+        }
+
+        // compute the intersection point using equation 1
+        let p = ray.origin + (ray.dir * t);
+
+        // edge 0
+        let edge0 = self.p1 - self.p0;
+        let vp0 = p - self.p0;
+        let mut c = edge0.cross(&vp0); // vector perpendicular to triangle's plane
+        if normal.dot(&c) < 0.0 {
+            return None;
+        } // P is on the right side
+
+        // edge 1
+        let edge1 = self.p2 - self.p1;
+        let vp1 = p - self.p1;
+        c = edge1.cross(&vp1);
+        if normal.dot(&c) < 0.0 {
+            return None;
+        } // P is on the right side
+
+        // edge 2
+        let edge2 = self.p0 - self.p2;
+        let vp2 = p - self.p2;
+        c = edge2.cross(&vp2);
+        if normal.dot(&c) < 0.0 {
+            return None;
+        } // P is on the right side;
+
+        return Some(Hit::new(
+            t,
+            ray.origin,
+            ray.origin * t,
+            correct_normal(normal.to_normalized(), &ray.dir),
+            self.color,
+        ));
     }
 }
 
