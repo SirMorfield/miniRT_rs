@@ -13,6 +13,7 @@ num-integer = "0.1.45"
 num-traits = "0.2.16"
 pad = "0.1.6"
 tobj = "4.0.0"
+# tobj  = { version = "4.0.0", default-features = false, features = ["merging"] }
 
 [build-dependencies]
 glob = "0.3.1"

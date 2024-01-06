@@ -4,7 +4,6 @@ use crate::triangle::Triangle;
 use crate::{camera::Camera, light::Light, vector::Vec3};
 
 mod obj;
-mod obj_trimesh;
 mod rt;
 
 pub struct Scene {
