@@ -152,11 +152,10 @@ where
             children: Vec::new(),
             shapes,
         };
-        println!("WARNING: Octree is disabled because it's broken");
         if this.shapes.len() != 0 {
-            // this.shrink_to_fit();
-            // this.subdivide();
-            // this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
+            this.shrink_to_fit();
+            this.subdivide();
+            this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
         }
         for shape in &this.shapes {
             assert!(shape.is_inside_aabb(&this.aabb));
@@ -272,14 +271,8 @@ where
 
         for shape in &self.shapes {
             let shape_aabb = shape.aabb();
-
-            min.x = min.x.max(shape_aabb.min.x);
-            min.y = min.y.max(shape_aabb.min.y);
-            min.z = min.z.max(shape_aabb.min.z);
-
-            max.x = max.x.min(shape_aabb.max.x);
-            max.y = max.y.min(shape_aabb.max.y);
-            max.z = max.z.min(shape_aabb.max.z);
+            min = min.max_unsafe(shape_aabb.min).max_unsafe(shape_aabb.max);
+            max = max.min_unsafe(shape_aabb.min).min_unsafe(shape_aabb.max);
         }
 
         self.aabb = AABB::new(max, min);
