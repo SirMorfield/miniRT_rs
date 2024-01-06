@@ -4,15 +4,18 @@ use crate::vector::Vec3;
 use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
-
 #[allow(dead_code)]
+pub enum Flip {
+    Horizontal,
+    Vertical,
+}
+
 pub struct FrameBuffer {
     buffer: Vec<Vec3<u8>>,
     resolution: Resolution,
     pixel_index: usize,
 }
 
-#[allow(dead_code)]
 impl FrameBuffer {
     // ? why am I allowed to use a result when there is only ever a ok?
     pub fn new(resolution: Resolution) -> Result<FrameBuffer, &'static str> {
@@ -41,10 +44,7 @@ impl FrameBuffer {
         if self.pixel_index >= self.buffer.len() {
             return None;
         }
-        let pix = (
-            self.pixel_index % self.resolution.width.get(),
-            self.pixel_index / self.resolution.width.get(),
-        );
+        let pix = self.i_to_coord(self.pixel_index);
         self.pixel_index += 1;
         return Some(pix);
     }
@@ -64,6 +64,42 @@ impl FrameBuffer {
             return None;
         }
         return Some(self.buffer[i]);
+    }
+
+    fn i_to_coord(&self, i: usize) -> (usize, usize) {
+        (
+            i % self.resolution.width.get(),
+            i / self.resolution.width.get(),
+        )
+    }
+    fn coord_to_i(&self, x: usize, y: usize) -> usize {
+        y * self.resolution.width.get() + x
+    }
+
+    #[allow(dead_code)]
+    pub fn flip(&mut self, direction: Flip) {
+        let width = self.resolution.width.get();
+        let height = self.resolution.height.get();
+        match direction {
+            Flip::Horizontal => {
+                for y in 0..height / 2 {
+                    for x in 0..width {
+                        let top = self.coord_to_i(x, y);
+                        let bottom = self.coord_to_i(x, height - y - 1);
+                        self.buffer.swap(top, bottom);
+                    }
+                }
+            }
+            Flip::Vertical => {
+                for x in 0..width / 2 {
+                    for y in 0..height {
+                        let left = self.coord_to_i(x, y);
+                        let right = self.coord_to_i(width - x - 1, y);
+                        self.buffer.swap(left, right);
+                    }
+                }
+            }
+        }
     }
 
     pub fn save_as_bmp(&self, path: &std::path::Path) -> io::Result<()> {

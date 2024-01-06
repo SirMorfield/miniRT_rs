@@ -1,4 +1,5 @@
 extern crate bmp;
+extern crate ncollide3d;
 extern crate num_integer;
 
 mod camera;
@@ -15,13 +16,14 @@ mod triangle;
 mod util;
 mod vector;
 
+use frame_buffer::Flip;
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
 use num::PowerOf2;
 use progress_logger::ProgressLogger;
 use renderer::Renderer;
 use resolution::Resolution;
-use scene_readers::rt::Scene;
+use scene_readers::{get_scene, Scene};
 use std::num::NonZeroUsize;
 use std::path::Path;
 use std::path::PathBuf;
@@ -30,10 +32,10 @@ use std::sync::mpsc::Sender;
 use std::sync::{mpsc, Arc, Mutex};
 use vector::Vec3;
 
-fn get_rt_file() -> Option<PathBuf> {
+fn get_render_file() -> Option<PathBuf> {
     let argv = std::env::args().collect::<Vec<_>>();
     if argv.len() != 2 {
-        println!("Usage: {} <scene.rt>", argv.get(0).unwrap());
+        println!("Usage: {} <scene.[rt,obj,blend]>", argv.get(0).unwrap());
         return None;
     }
     Path::new(argv.get(1).unwrap()).canonicalize().ok()
@@ -85,8 +87,9 @@ fn render_scene(
 }
 
 fn main() {
-    let scene_path = get_rt_file().unwrap();
-    let scene = Scene::new(scene_path.as_path()).unwrap();
+    let scene_path = get_render_file().unwrap();
+    let scene = get_scene(&scene_path).unwrap();
+    scene.print_stats();
     let resolution = Resolution::new(
         NonZeroUsize::new(500).unwrap(),
         NonZeroUsize::new(500).unwrap(),
@@ -107,7 +110,8 @@ fn main() {
     progress_logger.log_end();
 
     let path = Path::new("output.bmp");
-    let frame_buffer = frame_buffer.lock().unwrap();
+    let mut frame_buffer = frame_buffer.lock().unwrap();
+    frame_buffer.flip(Flip::Horizontal);
     frame_buffer.save_as_bmp(path).unwrap();
     println!("Saved to: ./{}", path.display());
 }

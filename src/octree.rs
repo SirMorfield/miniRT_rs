@@ -152,10 +152,11 @@ where
             children: Vec::new(),
             shapes,
         };
+        println!("WARNING: Octree is disabled because it's broken");
         if this.shapes.len() != 0 {
-            this.shrink_to_fit();
-            this.subdivide();
-            this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
+            // this.shrink_to_fit();
+            // this.subdivide();
+            // this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
         }
         for shape in &this.shapes {
             assert!(shape.is_inside_aabb(&this.aabb));
@@ -170,15 +171,14 @@ where
         let mut closest: Option<Hit> = None;
 
         for shape in &self.shapes {
-            if !shape.hit(ray) {
+            let hit = shape.hit(ray);
+            if hit.is_none() {
                 continue;
             }
-            let hit = shape.hit_info(ray);
-
             closest = match closest {
-                None => Some(hit),
+                None => hit,
                 Some(mut closest) => {
-                    closest.replace_if_closer(hit);
+                    closest.replace_if_closer(hit.unwrap());
                     Some(closest)
                 }
             }
@@ -309,7 +309,7 @@ where
         }
         let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
         if percentage < 90.0 {
-            panic!("Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)", self.shapes.len());
+            print!( "WARNING: Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)\n", self.shapes.len());
         }
     }
 
