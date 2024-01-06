@@ -152,10 +152,11 @@ where
             children: Vec::new(),
             shapes,
         };
+        println!("WARNING: Octree is disabled because it's broken");
         if this.shapes.len() != 0 {
-            this.shrink_to_fit();
-            this.subdivide();
-            this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
+            // this.shrink_to_fit();
+            // this.subdivide();
+            // this.shapes.shrink_to(MAX_SHAPES_PER_OCTREE);
         }
         for shape in &this.shapes {
             assert!(shape.is_inside_aabb(&this.aabb));
