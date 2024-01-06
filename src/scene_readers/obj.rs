@@ -39,17 +39,21 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
 
     for (_, m) in models.iter().enumerate() {
         let pos = &m.mesh.positions;
+        let idx = &m.mesh.indices;
 
-        if pos.len() % 3 != 0 {
-            return Err("Positions must be a multiple of 3".into());
+        if idx.len() % 3 != 0 {
+            return Err("Indices must be a multiple of 3".into());
         }
 
-        for v in 0..pos.len() / 9 {
-            let v = 9 * v;
+        for i in (0..idx.len()).step_by(3) {
+            let p0 = idx[i + 0] as usize * 3;
+            let p1 = idx[i + 1] as usize * 3;
+            let p2 = idx[i + 2] as usize * 3;
+
             let triangle = triangle::Triangle::new(
-                Vec3::new(pos[v + 0], pos[v + 1], pos[v + 2]),
-                Vec3::new(pos[v + 3], pos[v + 4], pos[v + 5]),
-                Vec3::new(pos[v + 6], pos[v + 7], pos[v + 8]),
+                Vec3::new(pos[p0], pos[p0 + 1], pos[p0 + 2]),
+                Vec3::new(pos[p1], pos[p1 + 1], pos[p1 + 2]),
+                Vec3::new(pos[p2], pos[p2 + 1], pos[p2 + 2]),
                 Vec3::homogeneous(255),
             );
             triangles.push(triangle);
