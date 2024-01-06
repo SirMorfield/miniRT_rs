@@ -110,7 +110,9 @@ fn main() {
 
     let path = Path::new("output.bmp");
     let mut frame_buffer = frame_buffer.lock().unwrap();
-    frame_buffer.flip(Flip::Horizontal);
+    if scene_path.extension().unwrap() == "obj" {
+        frame_buffer.flip(Flip::Horizontal);
+    }
     frame_buffer.save_as_bmp(path).unwrap();
     println!("Saved to: ./{}", path.display());
 }
