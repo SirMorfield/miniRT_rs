@@ -4,6 +4,7 @@ use crate::triangle::Triangle;
 use crate::{camera::Camera, light::Light, vector::Vec3};
 
 mod obj;
+mod obj_trimesh;
 mod rt;
 
 pub struct Scene {
@@ -30,6 +31,12 @@ impl Scene {
 
     pub fn void(&self) -> Vec3<u8> {
         Vec3::homogeneous(0)
+    }
+
+    pub fn print_stats(&self) {
+        println!("Scene");
+        println!("  Triangles: {}", self.triangles.shapes_count());
+        println!("  Lights   : {}", self.lights.len());
     }
 }
 
@@ -59,8 +66,6 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
         .unwrap();
 
     let origin = Vec3::new(avg.x, avg.y, biggest_z + ((avg.z - biggest_z) * 2.0).abs());
-    println!("   avg: {:?}", avg);
-    println!("origin: {:?}", origin);
     let dir = (avg - origin).to_normalized();
     return Camera::new(origin, dir, 80.0);
 }

@@ -89,6 +89,7 @@ fn render_scene(
 fn main() {
     let scene_path = get_render_file().unwrap();
     let scene = get_scene(&scene_path).unwrap();
+    scene.print_stats();
     let resolution = Resolution::new(
         NonZeroUsize::new(500).unwrap(),
         NonZeroUsize::new(500).unwrap(),
