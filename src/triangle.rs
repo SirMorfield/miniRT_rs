@@ -3,6 +3,7 @@ use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Ray, Shape};
 use crate::vector::Vec3;
 
+#[derive(Debug)]
 pub struct Triangle {
     pub p0: Vec3<f32>,
     pub p1: Vec3<f32>,

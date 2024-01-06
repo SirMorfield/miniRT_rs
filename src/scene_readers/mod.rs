@@ -59,14 +59,27 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
         .reduce(|a, b| a + b)
         .unwrap()
         / triangles.len() as f32;
-    let biggest_z = triangles
+    let min = triangles
         .iter()
-        .map(|t| (t.p0.z + t.p1.z + t.p2.z) / 3.0)
-        .reduce(|a, b| a.max(b))
+        .map(|t| t.p0.min_unsafe(t.p1).min_unsafe(t.p2))
+        .reduce(|a, b| a.min_unsafe(b))
+        .unwrap();
+    let max = triangles
+        .iter()
+        .map(|t| t.p0.max_unsafe(t.p1).max_unsafe(t.p2))
+        .reduce(|a, b| a.max_unsafe(b))
         .unwrap();
 
-    let origin = Vec3::new(avg.x, avg.y, biggest_z + ((avg.z - biggest_z) * 2.0).abs());
+    let size = (max - min).length();
+    let mut origin = avg + size / 2.0;
+    origin.y = avg.y; // set camera to be at the same height as the model
     let dir = (avg - origin).to_normalized();
+
+    // println!("min   : {:?}", min);
+    // println!("max   : {:?}", max);
+    // println!("size  : {:?}", size);
+    // println!("avg   : {:?}", avg);
+    // println!("origin: {:?}", origin);
     return Camera::new(origin, dir, 80.0);
 }
 

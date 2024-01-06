@@ -1,4 +1,7 @@
-use std::ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign};
+use std::{
+    cmp::Ordering,
+    ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
+};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3<T> {
@@ -276,6 +279,23 @@ where
         );
     }
 
+    pub fn min_unsafe(self, other: Vec3<T>) -> Vec3<T>
+    where
+        T: std::cmp::PartialOrd,
+    {
+        return Vec3::new(
+            std::cmp::min_by(self.x, other.x, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
+            std::cmp::min_by(self.y, other.y, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
+            std::cmp::min_by(self.z, other.z, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
+        );
+    }
+
     pub fn max(self, other: Vec3<T>) -> Vec3<T>
     where
         T: std::cmp::Ord,
@@ -284,6 +304,23 @@ where
             std::cmp::max(self.x, other.x),
             std::cmp::max(self.y, other.y),
             std::cmp::max(self.z, other.z),
+        );
+    }
+
+    pub fn max_unsafe(self, other: Vec3<T>) -> Vec3<T>
+    where
+        T: std::cmp::PartialOrd,
+    {
+        return Vec3::new(
+            std::cmp::max_by(self.x, other.x, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
+            std::cmp::max_by(self.y, other.y, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
+            std::cmp::max_by(self.z, other.z, |a, b| {
+                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
+            }),
         );
     }
 }
