@@ -308,7 +308,7 @@ where
         }
         let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
         if percentage < 90.0 {
-            print!( "WARNING: Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)", self.shapes.len());
+            print!( "WARNING: Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)\n", self.shapes.len());
         }
     }
 
