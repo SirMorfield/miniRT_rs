@@ -21,10 +21,8 @@ impl Triangle {
         let edge2 = self.p2 - self.p0;
         return (edge1, edge2);
     }
-}
 
-impl Shape for Triangle {
-    fn hit(&self, ray: &Ray) -> Option<Hit> {
+    fn hit_0(&self, ray: &Ray) -> Option<Hit> {
         // #ifndef USE_EIGEN
         let (edge1, edge2) = self.edges();
         // let normal = edge1.cross(&edge2).normalized();
@@ -54,6 +52,12 @@ impl Shape for Triangle {
 
         let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
         return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
+    }
+}
+
+impl Shape for Triangle {
+    fn hit(&self, ray: &Ray) -> Option<Hit> {
+        return self.hit_0(ray);
     }
 
     fn is_inside_aabb(&self, aabb: &AABB) -> bool {
