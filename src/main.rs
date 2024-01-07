@@ -105,7 +105,9 @@ fn main() {
     for (x, y, color) in rx {
         let mut frame_buffer = frame_buffer.lock().unwrap();
         frame_buffer.set_pixel(x, y, color);
-        progress_logger.log(frame_buffer.progress());
+        let progress = frame_buffer.progress();
+        drop(frame_buffer); // unlock mutex as soon as possible
+        progress_logger.log(progress);
     }
     progress_logger.log_end();
 
