@@ -8,6 +8,7 @@ mod light;
 mod num;
 mod octree;
 mod progress_logger;
+mod random_iterator;
 mod renderer;
 mod resolution;
 mod scene_readers;

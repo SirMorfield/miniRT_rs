@@ -1,9 +1,11 @@
 use crate::num::Float0to1;
+use crate::random_iterator::RandomIterator;
 use crate::resolution::Resolution;
 use crate::vector::Vec3;
 use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
+
 #[allow(dead_code)]
 pub enum Flip {
     Horizontal,
@@ -13,7 +15,7 @@ pub enum Flip {
 pub struct FrameBuffer {
     buffer: Vec<Vec3<u8>>,
     resolution: Resolution,
-    pixel_index: usize,
+    pixel_index: RandomIterator,
 }
 
 impl FrameBuffer {
@@ -27,26 +29,24 @@ impl FrameBuffer {
         return Ok(FrameBuffer {
             buffer,
             resolution,
-            pixel_index: 0,
+            pixel_index: RandomIterator::new(resolution.width.get() * resolution.height.get()),
         });
     }
 
-    // returns 0 - 1
+    pub fn pixel_count(&self) -> usize {
+        return self.resolution.width.get() * self.resolution.height.get();
+    }
+
     pub fn progress(&self) -> Float0to1 {
-        return Float0to1::new(
-            self.pixel_index as f32
-                / (self.resolution.width.get() * self.resolution.height.get()) as f32,
-        )
-        .unwrap_or(Float0to1::new(0.0).unwrap());
+        return Float0to1::new(self.pixel_index.i() as f32 / self.pixel_count() as f32)
+            .unwrap_or(Float0to1::new(f32::EPSILON).unwrap());
     }
 
     pub fn get_coordinate(&mut self) -> Option<(usize, usize)> {
-        if self.pixel_index >= self.buffer.len() {
-            return None;
+        match self.pixel_index.next() {
+            None => None,
+            Some(i) => Some(self.i_to_coord(i)),
         }
-        let pix = self.i_to_coord(self.pixel_index);
-        self.pixel_index += 1;
-        return Some(pix);
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Vec3<u8>) {
