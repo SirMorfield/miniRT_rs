@@ -70,8 +70,8 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
         .unwrap();
 
     let size = (max - min).length();
-    let mut origin = avg + size / 2.0;
-    origin.y = avg.y; // set camera to be at the same height as the model
+    let mut origin = avg + size / 5.0;
+    origin.z = -(avg.z + size / 2.0).abs();
     let dir = (avg - origin).to_normalized();
 
     // println!("min   : {:?}", min);
