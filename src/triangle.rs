@@ -53,6 +53,10 @@ impl Triangle {
             return None;
         }
 
+        // let total_dist = dist_p0 + dist_p1 + dist_p2;
+        // let normal = p0_normal * (dist_p0 / total_dist) + p1_normal * (dist_p1 / total_dist) + p2_normal * (dist_p2 / total_dist)
+        // let normal = correct_normal(normal, &ray.dir);
+
         let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
         return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
     }

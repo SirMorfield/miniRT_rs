@@ -18,8 +18,8 @@ impl ToFixed for f32 {
             s.push('.');
         }
 
-        let mantissas = s.len() - dot.unwrap();
-        for _ in mantissas..(precision + 1) {
+        let mantissa = s.len() - dot.unwrap();
+        for _ in mantissa..(precision + 1) {
             s.push('0');
         }
         s.truncate(dot.unwrap() + precision + 1);
