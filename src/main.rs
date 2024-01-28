@@ -91,8 +91,8 @@ fn main() {
     let scene = get_scene(&scene_path).unwrap();
     scene.print_stats();
     let resolution = Resolution::new(
-        NonZeroUsize::new(500).unwrap(),
-        NonZeroUsize::new(500).unwrap(),
+        NonZeroUsize::new(700).unwrap(),
+        NonZeroUsize::new(700).unwrap(),
         PowerOf2::new(4).unwrap(),
     );
     resolution.print();
