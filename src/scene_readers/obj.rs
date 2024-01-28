@@ -12,7 +12,9 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     if !path.ends_with(".obj") {
         return Err("File must end with .rt".into());
     }
-    let obj = tobj::load_obj(path, &tobj::GPU_LOAD_OPTIONS);
+    let mut opt = tobj::GPU_LOAD_OPTIONS;
+    opt.single_index = false;
+    let obj = tobj::load_obj(path, &opt);
     let (models, _materials) = obj.expect("Failed to load OBJ file");
     let triangles = parse_triangle(models)?;
     if triangles.len() == 0 {
@@ -22,7 +24,7 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     let mut lights: Vec<Light> = vec![];
 
     lights.push(Light::new(
-        camera.pos + 20.0,
+        camera.pos + 10.0,
         Float0to1::new(0.5).unwrap(),
         Vec3::new(50, 255, 50),
     ));
@@ -38,27 +40,41 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
     let mut triangles: Vec<Triangle> = Vec::new();
 
     for (_, m) in models.iter().enumerate() {
-        let pos = &m.mesh.positions;
-        let idx = &m.mesh.indices;
+        let vertices = &m.mesh.positions;
+        let vertices_i = &m.mesh.indices;
+        let normals = &m.mesh.normals;
+        let normals_i = &m.mesh.normal_indices;
 
-        if idx.len() % 3 != 0 {
+        if vertices_i.len() % 3 != 0 {
             return Err("Indices must be a multiple of 3".into());
         }
+        if vertices_i.len() != normals_i.len() {
+            return Err("Indices and normals must be the same length".into());
+        }
+        if normals.iter().find(|n| !n.is_finite()).is_some() {
+            return Err("Vertex is not finite".into());
+        }
+        if normals.iter().find(|n| !n.is_finite()).is_some() {
+            return Err("Normal is not finite".into());
+        }
 
-        for i in (0..idx.len()).step_by(3) {
-            let p0 = idx[i + 0] as usize * 3;
-            let p1 = idx[i + 1] as usize * 3;
-            let p2 = idx[i + 2] as usize * 3;
+        for i in (0..vertices_i.len()).step_by(3) {
+            let p0 = vertices_i[i + 0] as usize * 3;
+            let p1 = vertices_i[i + 1] as usize * 3;
+            let p2 = vertices_i[i + 2] as usize * 3;
+            let n0 = normals_i[i + 0] as usize * 3;
+            let n1 = normals_i[i + 1] as usize * 3;
+            let n2 = normals_i[i + 2] as usize * 3;
 
-            let triangle = triangle::Triangle::new(
-                Vec3::new(pos[p0], pos[p0 + 1], pos[p0 + 2]),
-                Vec3::new(pos[p1], pos[p1 + 1], pos[p1 + 2]),
-                Vec3::new(pos[p2], pos[p2 + 1], pos[p2 + 2]),
+            let triangle = triangle::Triangle::new_with_vertex_normals(
+                Vec3::new(vertices[p0], vertices[p0 + 1], vertices[p0 + 2]),
+                Vec3::new(vertices[p1], vertices[p1 + 1], vertices[p1 + 2]),
+                Vec3::new(vertices[p2], vertices[p2 + 1], vertices[p2 + 2]),
+                Vec3::new(normals[n0], normals[n0 + 1], normals[n0 + 2]),
+                Vec3::new(normals[n1], normals[n1 + 1], normals[n1 + 2]),
+                Vec3::new(normals[n2], normals[n2 + 1], normals[n2 + 2]),
                 Vec3::homogeneous(255),
             );
-            if !triangle.p0.is_finite() || !triangle.p1.is_finite() || !triangle.p2.is_finite() {
-                return Err("Triangle has NaN".into());
-            }
             triangles.push(triangle);
         }
     }

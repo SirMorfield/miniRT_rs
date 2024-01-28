@@ -8,13 +8,49 @@ pub struct Triangle {
     pub p0: Vec3<f32>,
     pub p1: Vec3<f32>,
     pub p2: Vec3<f32>,
+
+    pub vertex_normals: bool,
+    pub n0: Vec3<f32>,
+    pub n1: Vec3<f32>,
+    pub n2: Vec3<f32>,
+
     pub color: Vec3<u8>,
 }
 
 impl Triangle {
     // can this be done better?
     pub fn new(p0: Vec3<f32>, p1: Vec3<f32>, p2: Vec3<f32>, color: Vec3<u8>) -> Self {
-        Self { p0, p1, p2, color }
+        Self {
+            p0,
+            p1,
+            p2,
+            color,
+            vertex_normals: false,
+            n0: Vec3::homogeneous(0.0),
+            n1: Vec3::homogeneous(0.0),
+            n2: Vec3::homogeneous(0.0),
+        }
+    }
+
+    pub fn new_with_vertex_normals(
+        p0: Vec3<f32>,
+        p1: Vec3<f32>,
+        p2: Vec3<f32>,
+        n0: Vec3<f32>,
+        n1: Vec3<f32>,
+        n2: Vec3<f32>,
+        color: Vec3<u8>,
+    ) -> Self {
+        Self {
+            p0,
+            p1,
+            p2,
+            color,
+            vertex_normals: true,
+            n0,
+            n1,
+            n2,
+        }
     }
 
     #[allow(dead_code)]
@@ -53,12 +89,78 @@ impl Triangle {
             return None;
         }
 
-        // let total_dist = dist_p0 + dist_p1 + dist_p2;
-        // let normal = p0_normal * (dist_p0 / total_dist) + p1_normal * (dist_p1 / total_dist) + p2_normal * (dist_p2 / total_dist)
-        // let normal = correct_normal(normal, &ray.dir);
+        let normal = match self.vertex_normals {
+            true => self.vertex_normal(ray.origin + ray.dir * t, 1.0),
+            false => self.normal(),
+        };
 
-        let normal = correct_normal(edge1.cross(&edge2).to_normalized(), &ray.dir);
+        let normal = correct_normal(normal, &ray.dir);
         return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
+    }
+
+    fn barycentric_coordinates(&self, point: Vec3<f32>) -> (f32, f32) {
+        // Calculate vectors from p0 to p1 and p0 to p2
+        let v0 = self.p1 - self.p0;
+        let v1 = self.p2 - self.p0;
+
+        // Calculate vectors from p0 to the given point
+        let v2 = point - self.p0;
+
+        // Calculate dot products and denominator
+        let dot00 = v0.dot(&v0);
+        let dot01 = v0.dot(&v1);
+        let dot02 = v0.dot(&v2);
+        let dot11 = v1.dot(&v1);
+        let dot12 = v1.dot(&v2);
+
+        // Calculate barycentric coordinates
+        let inv_denom = 1.0 / (dot00 * dot11 - dot01 * dot01);
+        let u = (dot11 * dot02 - dot01 * dot12) * inv_denom;
+        let v = (dot00 * dot12 - dot01 * dot02) * inv_denom;
+
+        (u, v)
+    }
+
+    #[allow(dead_code)]
+    pub fn compare(&self) {
+        let normal = self.normal();
+        let vertex_normal = self.vertex_normal(self.p0, 1.0);
+        println!("points:        {:?}", (self.p0, self.p1, self.p2));
+        println!("normal:        {:?}", normal);
+        println!("vertex_normal: {:?}", vertex_normal);
+        println!();
+    }
+
+    fn normal(&self) -> Vec3<f32> {
+        let (edge1, edge2) = self.edges();
+        edge1.cross(&edge2).to_normalized()
+    }
+
+    fn vertex_normal(&self, point: Vec3<f32>, intensity: f32) -> Vec3<f32> {
+        let (u, v) = self.barycentric_coordinates(point);
+
+        // Interpolate normals at vertices
+        let n0 = if self.vertex_normals {
+            self.n0
+        } else {
+            self.p0
+        };
+        let n1 = if self.vertex_normals {
+            self.n1
+        } else {
+            self.p1
+        };
+        let n2 = if self.vertex_normals {
+            self.n2
+        } else {
+            self.p2
+        };
+
+        // Barycentric interpolation of normals
+        let normal = n0 * (1.0 - u - v) + n1 * u + n2 * v;
+        let normal = normal * intensity;
+        let normal = normal.to_normalized();
+        normal
     }
 
     #[allow(dead_code)]
