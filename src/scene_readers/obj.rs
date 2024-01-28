@@ -56,6 +56,9 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
                 Vec3::new(pos[p2], pos[p2 + 1], pos[p2 + 2]),
                 Vec3::homogeneous(255),
             );
+            if !triangle.p0.is_finite() || !triangle.p1.is_finite() || !triangle.p2.is_finite() {
+                return Err("Triangle has NaN".into());
+            }
             triangles.push(triangle);
         }
     }

@@ -3,6 +3,8 @@ use std::{
     ops::{Add, AddAssign, Div, DivAssign, Mul, MulAssign, Neg, Sub, SubAssign},
 };
 
+use num_traits::{float::FloatCore, Float};
+
 #[derive(Debug, Clone, Copy)]
 pub struct Vec3<T> {
     pub x: T,
@@ -322,5 +324,12 @@ where
                 a.partial_cmp(&b).unwrap_or(Ordering::Greater)
             }),
         );
+    }
+
+    pub fn is_finite(&self) -> bool
+    where
+        T: Float + FloatCore,
+    {
+        return Float::is_finite(self.x) && Float::is_finite(self.y) && Float::is_finite(self.z);
     }
 }
