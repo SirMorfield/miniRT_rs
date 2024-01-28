@@ -1,4 +1,4 @@
-use crate::num;
+use crate::num::{self, f32};
 use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Ray, Shape};
 use crate::vector::Vec3;
@@ -20,6 +20,7 @@ pub struct Triangle {
 impl Triangle {
     // can this be done better?
     pub fn new(p0: Vec3<f32>, p1: Vec3<f32>, p2: Vec3<f32>, color: Vec3<u8>) -> Self {
+        let (p0, p1, p2) = make_points_unique(&mut p0.clone(), &mut p1.clone(), &mut p2.clone());
         Self {
             p0,
             p1,
@@ -41,6 +42,7 @@ impl Triangle {
         n2: Vec3<f32>,
         color: Vec3<u8>,
     ) -> Self {
+        let (p0, p1, p2) = make_points_unique(&mut p0.clone(), &mut p1.clone(), &mut p2.clone());
         Self {
             p0,
             p1,
@@ -162,68 +164,28 @@ impl Triangle {
         let normal = normal.to_normalized();
         normal
     }
+}
 
-    #[allow(dead_code)]
-    fn hit_1(&self, ray: &Ray) -> Option<Hit> {
-        // compute the plane's normal
-        let v0v1 = self.p1 - self.p0;
-        let v0v2 = self.p2 - self.p0;
-        // no need to normalize
-        let normal = v0v1.cross(&v0v2); // N
-
-        // Step 1: finding P
-        // check if the ray and plane are parallel.
-        let n_dot_ray_direction = normal.dot(&ray.dir);
-        if n_dot_ray_direction.abs() < f32::EPSILON {
-            return None; // they are parallel, so they don't intersect!
-        }
-
-        // compute d parameter using equation 2
-        let d = -normal.dot(&self.p0);
-
-        // compute t (equation 3)
-        let t = -(normal.dot(&ray.origin) + d) / n_dot_ray_direction;
-
-        // check if the triangle is behind the ray
-        if t < 0.0 {
-            return None;
-        }
-
-        // compute the intersection point using equation 1
-        let p = ray.origin + (ray.dir * t);
-
-        // edge 0
-        let edge0 = self.p1 - self.p0;
-        let vp0 = p - self.p0;
-        let mut c = edge0.cross(&vp0); // vector perpendicular to triangle's plane
-        if normal.dot(&c) < 0.0 {
-            return None;
-        } // P is on the right side
-
-        // edge 1
-        let edge1 = self.p2 - self.p1;
-        let vp1 = p - self.p1;
-        c = edge1.cross(&vp1);
-        if normal.dot(&c) < 0.0 {
-            return None;
-        } // P is on the right side
-
-        // edge 2
-        let edge2 = self.p0 - self.p2;
-        let vp2 = p - self.p2;
-        c = edge2.cross(&vp2);
-        if normal.dot(&c) < 0.0 {
-            return None;
-        } // P is on the right side;
-
-        return Some(Hit::new(
-            t,
-            ray.origin,
-            ray.origin * t,
-            correct_normal(normal.to_normalized(), &ray.dir),
-            self.color,
-        ));
+/// Make sure that the points are unique.
+/// This is needed for calculating the normal.
+/// If two points are the same, the normal calculation will return NaN.
+fn make_points_unique(
+    p0: &mut Vec3<f32>,
+    p1: &mut Vec3<f32>,
+    p2: &mut Vec3<f32>,
+) -> (Vec3<f32>, Vec3<f32>, Vec3<f32>) {
+    if p0 == p1 {
+        *p0 += f32::EPSILON * 10.0;
     }
+
+    if p1 == p2 {
+        *p1 -= f32::EPSILON * 10.0;
+    }
+
+    if p2 == p0 {
+        *p2 += f32::EPSILON * 10.0;
+    }
+    return (p0.clone(), p1.clone(), p2.clone());
 }
 
 impl Shape for Triangle {
@@ -247,5 +209,37 @@ impl Shape for Triangle {
             num::maxn(&[self.p0.z, self.p1.z, self.p2.z]),
         );
         return AABB::new(min, max);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::triangle::Triangle;
+    use crate::vector::Vec3;
+
+    #[test]
+    fn test_normal() {
+        let t = Triangle::new(
+            Vec3::new(-8.350787, 547.8047, -204.87953),
+            Vec3::new(19.802517, 662.56616, -351.3024),
+            Vec3::new(19.802517, 662.56616, -351.3024),
+            Vec3::new(0, 0, 0),
+        );
+        let normal = t.normal();
+        assert!(normal.x.is_finite());
+        assert!(normal.y.is_finite());
+        assert!(normal.z.is_finite());
+    }
+
+    #[test]
+    fn test_make_unique() {
+        let mut p0 = Vec3::new(0.1, 0.0, 0.0);
+        let mut p1 = Vec3::new(0.0, 0.0, 0.0);
+        let mut p2 = Vec3::new(0.0, 0.0, 0.0);
+
+        let (p0, p1, p2) = super::make_points_unique(&mut p0, &mut p1, &mut p2);
+        assert!(p0 != p1);
+        assert!(p0 != p2);
+        assert!(p1 != p2);
     }
 }
