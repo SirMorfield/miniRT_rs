@@ -108,6 +108,14 @@ where
     }
 }
 
+impl<T: PartialEq> PartialEq for Vec3<T> {
+    fn eq(&self, other: &Self) -> bool {
+        self.x == other.x && self.y == other.y && self.z == other.z
+    }
+}
+
+impl<T: Eq> Eq for Vec3<T> {}
+
 #[allow(dead_code)]
 impl<T> Vec3<T>
 where
@@ -331,5 +339,14 @@ where
         T: Float + FloatCore,
     {
         return Float::is_finite(self.x) && Float::is_finite(self.y) && Float::is_finite(self.z);
+    }
+
+    pub fn approx_eq(&self, other: &Self, epsilon: T) -> bool
+    where
+        T: Float + FloatCore,
+    {
+        return Float::abs(self.x - other.x) < epsilon
+            && Float::abs(self.y - other.y) < epsilon
+            && Float::abs(self.z - other.z) < epsilon;
     }
 }
