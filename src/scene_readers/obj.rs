@@ -1,4 +1,5 @@
 use super::{default_ambient, look_at, Scene};
+use crate::helpers::contains_duplicates;
 use crate::light::Light;
 use crate::num::Float0to1;
 use crate::octree::Octree;
@@ -36,18 +37,8 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     ));
 }
 
-fn validate_triangle(t: &Triangle) -> Result<(), String> {
-    let err = Err("Triangle has two identical points".into());
-    if t.p0 == t.p1 {
-        return err;
-    }
-    if t.p0 == t.p2 {
-        return err;
-    }
-    if t.p1 == t.p2 {
-        return err;
-    }
-    Ok(())
+fn vertex_normals_loaded(mesh: &tobj::Mesh) -> bool {
+    mesh.normals.len() != 0 && mesh.normal_indices.len() != 0
 }
 
 fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
@@ -59,16 +50,33 @@ fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
     if vertices_i.len() % 3 != 0 {
         return Err("Indices must be a multiple of 3".into());
     }
-    if vertices_i.len() != normals_i.len() {
-        return Err("Indices and normals must be the same length".into());
-    }
-    if normals.iter().find(|n| !n.is_finite()).is_some() {
-        return Err("Normal is not finite".into());
-    }
     if vertices.iter().find(|n| !n.is_finite()).is_some() {
         return Err("Vertex is not finite".into());
     }
+    if vertex_normals_loaded(mesh) {
+        if vertices_i.len() != normals_i.len() {
+            return Err("Indices and normals must be the same length".into());
+        }
+        if normals.iter().find(|n| !n.is_finite()).is_some() {
+            return Err("Normal is not finite".into());
+        }
+    }
     Ok(())
+}
+
+///  either the points of a triangle or the vertex normals of one
+fn load_tri_vector(
+    points: &Vec<f32>,
+    idx: &Vec<u32>,
+    i: usize,
+) -> (Vec3<f32>, Vec3<f32>, Vec3<f32>) {
+    let p0 = idx[i + 0] as usize * 3;
+    let p1 = idx[i + 1] as usize * 3;
+    let p2 = idx[i + 2] as usize * 3;
+    let p0 = Vec3::new(points[p0], points[p0 + 1], points[p0 + 2]);
+    let p1 = Vec3::new(points[p1], points[p1 + 1], points[p1 + 2]);
+    let p2 = Vec3::new(points[p2], points[p2 + 1], points[p2 + 2]);
+    (p0, p1, p2)
 }
 
 fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
@@ -83,32 +91,29 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
 
         validate_mesh(&m.mesh)?;
 
-        for i in (0..vertices_i.len()).step_by(3) {
-            let p0 = vertices_i[i + 0] as usize * 3;
-            let p1 = vertices_i[i + 1] as usize * 3;
-            let p2 = vertices_i[i + 2] as usize * 3;
-            let n0 = normals_i[i + 0] as usize * 3;
-            let n1 = normals_i[i + 1] as usize * 3;
-            let n2 = normals_i[i + 2] as usize * 3;
+        if !vertex_normals_loaded(&m.mesh) {
+            println!("No vertex normals found. Using geometric normals instead.");
+        }
 
-            let triangle = triangle::Triangle::new_with_vertex_normals(
-                Vec3::new(vertices[p0], vertices[p0 + 1], vertices[p0 + 2]),
-                Vec3::new(vertices[p1], vertices[p1 + 1], vertices[p1 + 2]),
-                Vec3::new(vertices[p2], vertices[p2 + 1], vertices[p2 + 2]),
-                Vec3::new(normals[n0], normals[n0 + 1], normals[n0 + 2]),
-                Vec3::new(normals[n1], normals[n1 + 1], normals[n1 + 2]),
-                Vec3::new(normals[n2], normals[n2 + 1], normals[n2 + 2]),
-                Vec3::homogeneous(255),
-            );
-            if validate_triangle(&triangle).is_err() {
+        for i in (0..vertices_i.len()).step_by(3) {
+            let (p0, p1, p2) = load_tri_vector(vertices, vertices_i, i);
+            if contains_duplicates(&[p0, p1, p2]) {
                 failed += 1;
                 continue;
             }
+            let color = Vec3::homogeneous(255);
+            let triangle = match vertex_normals_loaded(&m.mesh) {
+                true => {
+                    let (n0, n1, n2) = load_tri_vector(normals, normals_i, i);
+                    triangle::Triangle::with_vertex_normals(p0, p1, p2, n0, n1, n2, color)
+                }
+                false => triangle::Triangle::new(p0, p1, p2, Vec3::homogeneous(255)),
+            };
             triangles.push(triangle);
         }
         if failed > 0 {
             println!(
-                "Failed to parse {} of {} triangles",
+                "Failed to parse {} of {} triangles due to duplicate vertices",
                 failed,
                 triangles.len()
             );

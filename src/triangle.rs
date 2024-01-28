@@ -33,7 +33,7 @@ impl Triangle {
         }
     }
 
-    pub fn new_with_vertex_normals(
+    pub fn with_vertex_normals(
         p0: Vec3<f32>,
         p1: Vec3<f32>,
         p2: Vec3<f32>,

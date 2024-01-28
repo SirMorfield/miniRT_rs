@@ -90,3 +90,17 @@ impl AsFormattedString for std::time::Duration {
         return result;
     }
 }
+
+pub fn contains_duplicates<T>(arr: &[T]) -> bool
+where
+    T: PartialEq,
+{
+    for (i, a) in arr.iter().enumerate() {
+        for b in arr.iter().skip(i + 1) {
+            if a == b {
+                return true;
+            }
+        }
+    }
+    return false;
+}
