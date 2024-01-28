@@ -36,6 +36,41 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     ));
 }
 
+fn validate_triangle(t: &Triangle) -> Result<(), String> {
+    let err = Err("Triangle has two identical points".into());
+    if t.p0 == t.p1 {
+        return err;
+    }
+    if t.p0 == t.p2 {
+        return err;
+    }
+    if t.p1 == t.p2 {
+        return err;
+    }
+    Ok(())
+}
+
+fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
+    let vertices = &mesh.positions;
+    let vertices_i = &mesh.indices;
+    let normals = &mesh.normals;
+    let normals_i = &mesh.normal_indices;
+
+    if vertices_i.len() % 3 != 0 {
+        return Err("Indices must be a multiple of 3".into());
+    }
+    if vertices_i.len() != normals_i.len() {
+        return Err("Indices and normals must be the same length".into());
+    }
+    if normals.iter().find(|n| !n.is_finite()).is_some() {
+        return Err("Normal is not finite".into());
+    }
+    if vertices.iter().find(|n| !n.is_finite()).is_some() {
+        return Err("Vertex is not finite".into());
+    }
+    Ok(())
+}
+
 fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
     let mut triangles: Vec<Triangle> = Vec::new();
 
@@ -44,19 +79,9 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
         let vertices_i = &m.mesh.indices;
         let normals = &m.mesh.normals;
         let normals_i = &m.mesh.normal_indices;
+        let mut failed: usize = 0;
 
-        if vertices_i.len() % 3 != 0 {
-            return Err("Indices must be a multiple of 3".into());
-        }
-        if vertices_i.len() != normals_i.len() {
-            return Err("Indices and normals must be the same length".into());
-        }
-        if normals.iter().find(|n| !n.is_finite()).is_some() {
-            return Err("Vertex is not finite".into());
-        }
-        if normals.iter().find(|n| !n.is_finite()).is_some() {
-            return Err("Normal is not finite".into());
-        }
+        validate_mesh(&m.mesh)?;
 
         for i in (0..vertices_i.len()).step_by(3) {
             let p0 = vertices_i[i + 0] as usize * 3;
@@ -75,7 +100,18 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
                 Vec3::new(normals[n2], normals[n2 + 1], normals[n2 + 2]),
                 Vec3::homogeneous(255),
             );
+            if validate_triangle(&triangle).is_err() {
+                failed += 1;
+                continue;
+            }
             triangles.push(triangle);
+        }
+        if failed > 0 {
+            println!(
+                "Failed to parse {} of {} triangles",
+                failed,
+                triangles.len()
+            );
         }
     }
     Ok(triangles)
