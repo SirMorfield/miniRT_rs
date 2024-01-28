@@ -20,6 +20,7 @@ impl Renderer {
         }
     }
 
+    /// TOOD: this is completely broken when the fov changes
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
         let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0)
             * self.aspect_ratio
