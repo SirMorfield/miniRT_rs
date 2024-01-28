@@ -11,6 +11,7 @@ pub struct Scene {
     pub triangles: Octree<Triangle>,
     pub lights: Vec<Light>,
     pub ambient: Light,
+    pub load_duration: std::time::Duration,
 }
 
 impl Scene {
@@ -19,12 +20,14 @@ impl Scene {
         triangles: Octree<Triangle>,
         lights: Vec<Light>,
         ambient: Light,
+        parse_duration: std::time::Duration,
     ) -> Self {
         Self {
             camera,
             triangles,
             lights,
             ambient,
+            load_duration: parse_duration,
         }
     }
 
@@ -34,6 +37,7 @@ impl Scene {
 
     pub fn print_stats(&self) {
         println!("Scene");
+        println!("  Loaded in: {:?}", self.load_duration);
         println!("  Triangles: {}", self.triangles.shapes_count());
         println!("  Lights   : {}", self.lights.len());
     }

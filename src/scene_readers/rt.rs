@@ -91,6 +91,7 @@ fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
 }
 
 pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
+    let now = std::time::Instant::now();
     if !path.display().to_string().ends_with(".rt") {
         return Err("File must end with .rt".into());
     }
@@ -145,5 +146,12 @@ pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
         }
     }
     let triangles = Octree::new(triangles);
-    return Ok(Scene::new(camera, triangles, lights, ambient));
+    let parse_duration = now.elapsed();
+    return Ok(Scene::new(
+        camera,
+        triangles,
+        lights,
+        ambient,
+        parse_duration,
+    ));
 }

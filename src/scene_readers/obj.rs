@@ -9,6 +9,7 @@ use crate::vector::Vec3;
 use tobj;
 
 pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
+    let now = std::time::Instant::now();
     let path = path.display().to_string();
     if !path.ends_with(".obj") {
         return Err("File must end with .rt".into());
@@ -29,11 +30,14 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
         Float0to1::new(0.5).unwrap(),
         Vec3::new(50, 255, 50),
     ));
+    let triangles = Octree::new(triangles);
+    let parse_duration = now.elapsed();
     return Ok(Scene::new(
         camera,
-        Octree::new(triangles),
+        triangles,
         lights,
         default_ambient(),
+        parse_duration,
     ));
 }
 
