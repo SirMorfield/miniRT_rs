@@ -52,8 +52,7 @@ impl FrameBuffer {
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Vec3<u8>) {
         let i = x + y * self.resolution.width.get();
         if i >= self.buffer.len() {
-            // TODO: error handling
-            return;
+            panic!("Index out of bounds");
         }
         self.buffer[i] = color;
     }
