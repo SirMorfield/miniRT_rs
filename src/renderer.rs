@@ -8,22 +8,17 @@ use crate::vector::Vec3;
 #[derive(Clone)]
 pub struct Renderer {
     resolution: Resolution,
-    aspect_ratio: f32,
 }
 
 impl Renderer {
     pub fn new(resolution: Resolution) -> Self {
-        let aspect_ratio = resolution.width.get() as f32 / resolution.height.get() as f32;
-        Self {
-            resolution,
-            aspect_ratio,
-        }
+        Self { resolution }
     }
 
     /// TOOD: this is completely broken when the fov changes
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
         let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0)
-            * self.aspect_ratio
+            * self.resolution.aspect_ratio
             * camera.fow_tan;
         let py = (2.0 * y / (self.resolution.height.get() as f32) - 1.0) * camera.fow_tan;
 

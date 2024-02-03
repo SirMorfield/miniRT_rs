@@ -8,12 +8,18 @@ pub struct Resolution {
     pub width: NonZeroUsize,
     pub height: NonZeroUsize,
     pub aa: PowerOf2,
+    pub aspect_ratio: f32,
 }
 
 #[allow(dead_code)]
 impl Resolution {
     pub fn new(width: NonZeroUsize, height: NonZeroUsize, aa: PowerOf2) -> Self {
-        return Self { width, height, aa };
+        return Self {
+            width,
+            height,
+            aa,
+            aspect_ratio: width.get() as f32 / height.get() as f32,
+        };
     }
     pub fn pixels_per_side(&self) -> usize {
         return self.aa.get().sqrt() as usize;
