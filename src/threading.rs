@@ -4,6 +4,8 @@ use crate::progress_logger;
 use crate::renderer;
 use crate::resolution;
 use crate::scene_readers::get_scene;
+use crate::scene_readers::FileType;
+use crate::scene_readers::Scene;
 use frame_buffer::Flip;
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
@@ -15,38 +17,37 @@ use std::path::PathBuf;
 use std::sync::{mpsc, Arc, Mutex};
 
 pub struct MultiThreadedRenderer {
-    resolution: Resolution,
-    scene_path: PathBuf,
+    progress_logger: ProgressLogger,
+    num_threads: usize,
+    renderer: Arc<Renderer>,
+    pub scene: Arc<Scene>,
     pub frame_buffer: Arc<Mutex<FrameBuffer>>,
 }
 
 impl MultiThreadedRenderer {
     pub fn new(resolution: Resolution, scene_path: PathBuf) -> Self {
         Self {
-            resolution,
-            scene_path,
+            num_threads: std::thread::available_parallelism()
+                .unwrap_or(NonZeroUsize::new(8).unwrap())
+                .get(),
+            progress_logger: ProgressLogger::new(
+                "Rendering",
+                PositiveNonzeroF32::new(0.1).unwrap(),
+                1,
+            ),
+            renderer: Arc::new(Renderer::new(resolution)),
             frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap())),
+            scene: Arc::new(get_scene(&scene_path).unwrap()),
         }
     }
+
     pub fn render(&mut self) {
-        let mut progress_logger =
-            ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.1).unwrap(), 1);
-        let num_threads = std::thread::available_parallelism()
-            .unwrap_or(NonZeroUsize::new(8).unwrap())
-            .get();
-        println!("Using {num_threads} threads");
-
-        let scene = Arc::new(get_scene(&self.scene_path).unwrap());
-        scene.print_stats();
-        let renderer = Arc::new(Renderer::new(self.resolution));
-
-        // start
         let (tx, rx) = mpsc::channel();
-        for _ in 0..num_threads {
+        for _ in 0..self.num_threads {
             let fb = self.frame_buffer.clone();
             let tx = tx.clone();
-            let renderer = renderer.clone();
-            let scene = scene.clone();
+            let renderer = self.renderer.clone();
+            let scene = self.scene.clone();
             std::thread::spawn(move || loop {
                 let mut fb = fb.lock().unwrap();
                 let coordinate = fb.get_coordinate();
@@ -68,13 +69,12 @@ impl MultiThreadedRenderer {
             fb.set_pixel(x, y, color);
             let progress = fb.progress();
             drop(fb);
-            progress_logger.log(progress);
+            self.progress_logger.log(progress);
         }
-        progress_logger.log_end();
+        self.progress_logger.log_end();
 
-        if self.scene_path.extension().unwrap() == "obj" {
+        if self.scene.file_type == FileType::Obj {
             self.frame_buffer.lock().unwrap().flip(Flip::Horizontal);
         }
-        // self.frame_buffer = *frame_buffer;
     }
 }

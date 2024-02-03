@@ -1,4 +1,4 @@
-use super::{default_ambient, look_at, Scene};
+use super::{default_ambient, look_at, FileType, Scene};
 use crate::helpers::contains_duplicates;
 use crate::light::Light;
 use crate::num::Float0to1;
@@ -38,6 +38,7 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
         lights,
         default_ambient(),
         parse_duration,
+        FileType::Obj,
     ));
 }
 

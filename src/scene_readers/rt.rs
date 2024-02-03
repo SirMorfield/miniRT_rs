@@ -1,4 +1,4 @@
-use super::Scene;
+use super::{FileType, Scene};
 use crate::light::Light;
 use crate::num::Float0to1;
 use crate::octree::Octree;
@@ -153,5 +153,6 @@ pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
         lights,
         ambient,
         parse_duration,
+        FileType::Rt,
     ));
 }

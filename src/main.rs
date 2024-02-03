@@ -40,8 +40,11 @@ fn main() {
         NonZeroUsize::new(700).unwrap(),
         PowerOf2::new(4).unwrap(),
     );
-    resolution.print();
     let mut renderer = MultiThreadedRenderer::new(resolution, scene_path);
+
+    resolution.print();
+    renderer.scene.print_stats();
+
     renderer.render();
     let path = Path::new("output.bmp");
     renderer

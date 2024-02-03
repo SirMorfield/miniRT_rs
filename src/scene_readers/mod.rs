@@ -6,12 +6,19 @@ use crate::{camera::Camera, light::Light, vector::Vec3};
 mod obj;
 mod rt;
 
+#[derive(PartialEq)]
+pub enum FileType {
+    Rt,
+    Obj,
+}
+
 pub struct Scene {
     pub camera: Camera, // TODO: should be plural
     pub triangles: Octree<Triangle>,
     pub lights: Vec<Light>,
     pub ambient: Light,
     pub load_duration: std::time::Duration,
+    pub file_type: FileType,
 }
 
 impl Scene {
@@ -21,6 +28,7 @@ impl Scene {
         lights: Vec<Light>,
         ambient: Light,
         parse_duration: std::time::Duration,
+        file_type: FileType,
     ) -> Self {
         Self {
             camera,
@@ -28,6 +36,7 @@ impl Scene {
             lights,
             ambient,
             load_duration: parse_duration,
+            file_type,
         }
     }
 
@@ -35,6 +44,7 @@ impl Scene {
         Vec3::homogeneous(0)
     }
 
+    #[allow(dead_code)]
     pub fn print_stats(&self) {
         println!("Scene");
         println!("  Loaded in: {:?}", self.load_duration);
