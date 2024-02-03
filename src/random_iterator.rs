@@ -20,6 +20,12 @@ impl RandomIterator {
             i: 0,
         }
     }
+    pub fn reset(&mut self) {
+        self.i = 0;
+        self.offset = 0;
+        self.actual = 0;
+        self.step_size = self.max / 2;
+    }
     pub fn i(&self) -> usize {
         self.i
     }

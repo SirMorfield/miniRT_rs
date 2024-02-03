@@ -41,7 +41,13 @@ impl MultiThreadedRenderer {
         }
     }
 
+    fn reset_progress(&mut self) {
+        self.frame_buffer.lock().unwrap().reset_progress();
+    }
+
     pub fn render(&mut self) {
+        self.reset_progress();
+
         let (tx, rx) = mpsc::channel();
         for _ in 0..self.num_threads {
             let fb = self.frame_buffer.clone();

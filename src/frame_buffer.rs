@@ -33,6 +33,10 @@ impl FrameBuffer {
         });
     }
 
+    pub fn reset_progress(&mut self) {
+        self.pixel_index.reset();
+    }
+
     pub fn pixel_count(&self) -> usize {
         return self.resolution.width.get() * self.resolution.height.get();
     }
