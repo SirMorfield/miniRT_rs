@@ -3,7 +3,6 @@ use crate::num;
 use crate::progress_logger;
 use crate::renderer;
 use crate::resolution;
-use crate::scene_readers::get_scene;
 use crate::scene_readers::FileType;
 use crate::scene_readers::Scene;
 use frame_buffer::Flip;
@@ -20,12 +19,12 @@ pub struct MultiThreadedRenderer {
     progress_logger: ProgressLogger,
     num_threads: usize,
     renderer: Arc<Renderer>,
-    pub scene: Arc<Scene>,
+    // pub scene: Scene,
     pub frame_buffer: Arc<Mutex<FrameBuffer>>,
 }
 
 impl MultiThreadedRenderer {
-    pub fn new(resolution: Resolution, scene_path: PathBuf) -> Self {
+    pub fn new(resolution: Resolution) -> Self {
         Self {
             num_threads: std::thread::available_parallelism()
                 .unwrap_or(NonZeroUsize::new(8).unwrap())
@@ -37,7 +36,6 @@ impl MultiThreadedRenderer {
             ),
             renderer: Arc::new(Renderer::new(resolution)),
             frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap())),
-            scene: Arc::new(get_scene(&scene_path).unwrap()),
         }
     }
 
@@ -45,15 +43,14 @@ impl MultiThreadedRenderer {
         self.frame_buffer.lock().unwrap().reset_progress();
     }
 
-    pub fn render(&mut self) {
+    pub fn render(&mut self, scene: &Arc<Scene>) {
         self.reset_progress();
-
         let (tx, rx) = mpsc::channel();
         for _ in 0..self.num_threads {
             let fb = self.frame_buffer.clone();
             let tx = tx.clone();
             let renderer = self.renderer.clone();
-            let scene = self.scene.clone();
+            let scene2 = scene.clone();
             std::thread::spawn(move || loop {
                 let mut fb = fb.lock().unwrap();
                 let coordinate = fb.get_coordinate();
@@ -62,7 +59,7 @@ impl MultiThreadedRenderer {
                 match coordinate {
                     None => break,
                     Some((x, y)) => {
-                        let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
+                        let color = renderer.render(&scene2, &scene2.camera, x as f32, y as f32);
                         tx.send((x, y, color)).unwrap();
                     }
                 }
@@ -79,7 +76,7 @@ impl MultiThreadedRenderer {
         }
         self.progress_logger.log_end();
 
-        if self.scene.file_type == FileType::Obj {
+        if scene.file_type == FileType::Obj {
             self.frame_buffer.lock().unwrap().flip(Flip::Horizontal);
         }
     }

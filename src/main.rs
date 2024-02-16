@@ -4,6 +4,7 @@ extern crate num_integer;
 mod camera;
 mod frame_buffer;
 mod helpers;
+mod init;
 mod light;
 mod num;
 mod octree;
@@ -18,40 +19,45 @@ mod util;
 mod vector;
 
 use crate::threading::MultiThreadedRenderer;
-use num::PowerOf2;
-use resolution::Resolution;
-use std::num::NonZeroUsize;
-use std::path::Path;
-use std::path::PathBuf;
+use init::get_resolution;
+use init::get_scene;
+use minifb::{Key, Window, WindowOptions};
+use std::sync::Arc;
+use util::fps_to_duration;
 
-fn get_render_file() -> Option<PathBuf> {
-    let argv = std::env::args().collect::<Vec<_>>();
-    if argv.len() != 2 {
-        println!("Usage: {} <scene.[rt,obj,blend]>", argv.get(0).unwrap());
-        return None;
-    }
-    Path::new(argv.get(1).unwrap()).canonicalize().ok()
-}
 //https://crates.io/crates/minifb
 fn main() {
-    let scene_path = get_render_file().unwrap();
-    let resolution = Resolution::new(
-        NonZeroUsize::new(700).unwrap(),
-        NonZeroUsize::new(700).unwrap(),
-        PowerOf2::new(4).unwrap(),
-    );
-    let mut renderer = MultiThreadedRenderer::new(resolution, scene_path);
-
+    let resolution = get_resolution();
     resolution.print();
-    renderer.scene.print_stats();
-
-    renderer.render();
-    let path = Path::new("output.bmp");
-    renderer
-        .frame_buffer
-        .lock()
-        .unwrap()
-        .save_as_bmp(path)
+    let mut renderer = MultiThreadedRenderer::new(resolution);
+    let scene = Arc::new(get_scene().unwrap());
+    let mut window = Window::new(
+        "Test - ESC to exit",
+        resolution.width.get(),
+        resolution.height.get(),
+        WindowOptions::default(),
+    )
+    .unwrap();
+    window.limit_update_rate(Some(fps_to_duration(30)));
+    window
+        .update_with_buffer(
+            &vec![0; resolution.width.get() * resolution.height.get()],
+            resolution.width.get(),
+            resolution.height.get(),
+        )
         .unwrap();
-    println!("Saved to: ./{}", path.display());
+    while window.is_open() && !window.is_key_down(Key::Escape) {
+        renderer.render(&scene);
+        let fb = renderer.frame_buffer.lock().unwrap();
+        // if window.is_key_down(Key::Space) {
+        //     renderer.scene.camera.pos.y += 0.1;
+        // }
+        window
+            .update_with_buffer(
+                &fb.buffer(),
+                resolution.width.get(),
+                resolution.height.get(),
+            )
+            .unwrap();
+    }
 }

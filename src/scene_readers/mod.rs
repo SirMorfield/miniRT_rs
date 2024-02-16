@@ -53,7 +53,7 @@ impl Scene {
     }
 }
 
-pub fn get_scene(path: &std::path::Path) -> Result<Scene, String> {
+pub fn read_scene(path: &std::path::Path) -> Result<Scene, String> {
     let display = path.display().to_string();
 
     if display.ends_with(".rt") {
