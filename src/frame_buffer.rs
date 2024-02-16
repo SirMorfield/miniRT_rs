@@ -6,6 +6,18 @@ use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
 
+pub fn to_u32(color: Vec3<u8>) -> u32 {
+    (color.x as u32) | ((color.y as u32) << 8) | ((color.z as u32) << 16)
+}
+
+pub fn to_u8(color: u32) -> Vec3<u8> {
+    Vec3::new(
+        (color & 0xFF) as u8,
+        ((color >> 8) & 0xFF) as u8,
+        ((color >> 16) & 0xFF) as u8,
+    )
+}
+
 #[allow(dead_code)]
 pub enum Flip {
     Horizontal,
@@ -13,7 +25,7 @@ pub enum Flip {
 }
 
 pub struct FrameBuffer {
-    buffer: Vec<Vec3<u8>>,
+    buffer: Vec<u32>,
     resolution: Resolution,
     pixel_index: RandomIterator,
 }
@@ -21,11 +33,8 @@ pub struct FrameBuffer {
 impl FrameBuffer {
     // ? why am I allowed to use a result when there is only ever a ok?
     pub fn new(resolution: Resolution) -> Result<FrameBuffer, &'static str> {
-        let mut buffer = Vec::<Vec3<u8>>::new();
-        buffer.resize(
-            resolution.width.get() * resolution.height.get(),
-            Vec3::<u8>::homogeneous(0),
-        );
+        let mut buffer = Vec::<u32>::new();
+        buffer.resize(resolution.width.get() * resolution.height.get(), 0);
         return Ok(FrameBuffer {
             buffer,
             resolution,
@@ -35,6 +44,10 @@ impl FrameBuffer {
 
     pub fn reset_progress(&mut self) {
         self.pixel_index.reset();
+    }
+
+    pub fn buffer(&self) -> &Vec<u32> {
+        &self.buffer
     }
 
     pub fn pixel_count(&self) -> usize {
@@ -58,15 +71,16 @@ impl FrameBuffer {
         if i >= self.buffer.len() {
             panic!("Index out of bounds");
         }
-        self.buffer[i] = color;
+        self.buffer[i] = to_u32(color);
     }
 
+    #[allow(dead_code)]
     pub fn get_pixel(&self, x: usize, y: usize) -> Option<Vec3<u8>> {
         let i = x + y * self.resolution.width.get();
         if i >= self.buffer.len() {
             return None;
         }
-        return Some(self.buffer[i]);
+        return Some(to_u8(self.buffer[i]));
     }
 
     fn i_to_coord(&self, i: usize) -> (usize, usize) {
@@ -105,6 +119,7 @@ impl FrameBuffer {
         }
     }
 
+    #[allow(dead_code)]
     pub fn save_as_bmp(&self, path: &std::path::Path) -> io::Result<()> {
         let mut img = Image::new(
             self.resolution.width.get() as u32,
