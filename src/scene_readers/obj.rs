@@ -5,7 +5,7 @@ use crate::num::Float0to1;
 use crate::octree::Octree;
 use crate::triangle;
 use crate::triangle::Triangle;
-use crate::vector::Vec3;
+use crate::vector::Point;
 use tobj;
 
 pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
@@ -28,7 +28,7 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     lights.push(Light::new(
         camera.pos + 10.0,
         Float0to1::new(0.5).unwrap(),
-        Vec3::new(50, 255, 50),
+        Point::new(50, 255, 50),
     ));
     let triangles = Octree::new(triangles);
     let parse_duration = now.elapsed();
@@ -74,13 +74,13 @@ fn load_tri_vector(
     points: &Vec<f32>,
     idx: &Vec<u32>,
     i: usize,
-) -> (Vec3<f32>, Vec3<f32>, Vec3<f32>) {
+) -> (Point<f32>, Point<f32>, Point<f32>) {
     let p0 = idx[i + 0] as usize * 3;
     let p1 = idx[i + 1] as usize * 3;
     let p2 = idx[i + 2] as usize * 3;
-    let p0 = Vec3::new(points[p0], points[p0 + 1], points[p0 + 2]);
-    let p1 = Vec3::new(points[p1], points[p1 + 1], points[p1 + 2]);
-    let p2 = Vec3::new(points[p2], points[p2 + 1], points[p2 + 2]);
+    let p0 = Point::new(points[p0], points[p0 + 1], points[p0 + 2]);
+    let p1 = Point::new(points[p1], points[p1 + 1], points[p1 + 2]);
+    let p2 = Point::new(points[p2], points[p2 + 1], points[p2 + 2]);
     (p0, p1, p2)
 }
 
@@ -106,13 +106,13 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
                 failed += 1;
                 continue;
             }
-            let color = Vec3::homogeneous(255);
+            let color = Point::homogeneous(255);
             let triangle = match vertex_normals_loaded(&m.mesh) {
                 true => {
                     let (n0, n1, n2) = load_tri_vector(normals, normals_i, i);
                     triangle::Triangle::with_vertex_normals(p0, p1, p2, n0, n1, n2, color)
                 }
-                false => triangle::Triangle::new(p0, p1, p2, Vec3::homogeneous(255)),
+                false => triangle::Triangle::new(p0, p1, p2, Point::homogeneous(255)),
             };
             triangles.push(triangle);
         }

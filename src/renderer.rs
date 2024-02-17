@@ -3,7 +3,7 @@ use crate::light::Light;
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
 use crate::util::{Hit, Ray};
-use crate::vector::Vec3;
+use crate::vector::Point;
 
 #[derive(Clone)]
 pub struct Renderer {
@@ -22,10 +22,10 @@ impl Renderer {
             * camera.fow_tan;
         let py = (2.0 * y / (self.resolution.height.get() as f32) - 1.0) * camera.fow_tan;
 
-        let positive_x: Vec3<f32> = if camera.dir.x == 0.0 && camera.dir.z == 0.0 {
-            Vec3::new(1.0, 0.0, 0.0)
+        let positive_x: Point<f32> = if camera.dir.x == 0.0 && camera.dir.z == 0.0 {
+            Point::new(1.0, 0.0, 0.0)
         } else {
-            camera.dir.cross(&Vec3::new(0.0, 1.0, 0.0))
+            camera.dir.cross(&Point::new(0.0, 1.0, 0.0))
         };
 
         let negative_y = camera.dir.cross(&positive_x);
@@ -40,8 +40,8 @@ impl Renderer {
     }
 
     // TODO: move to Hit
-    pub fn get_color(&self, scene: &Scene, hit: &Hit) -> Vec3<u8> {
-        let mut acc = Vec3::homogeneous(0.0);
+    pub fn get_color(&self, scene: &Scene, hit: &Hit) -> Point<u8> {
+        let mut acc = Point::homogeneous(0.0);
         let mut additions: usize = 0;
 
         for light in &scene.lights {
@@ -54,11 +54,11 @@ impl Renderer {
             additions += 1;
         }
         acc /= additions as f32;
-        return Vec3::new(acc.x as u8, acc.y as u8, acc.z as u8);
+        return Point::new(acc.x as u8, acc.y as u8, acc.z as u8);
     }
 
-    fn is_clear_path(&self, scene: &Scene, point: &Vec3<f32>, light: &Light) -> bool {
-        let v: Vec3<f32> = (light.origin - *point).to_normalized();
+    fn is_clear_path(&self, scene: &Scene, point: &Point<f32>, light: &Light) -> bool {
+        let v: Point<f32> = (light.origin - *point).to_normalized();
         let to_light: Ray = Ray::new(*point, v);
 
         let hit = self.hit(&scene, &to_light);
@@ -68,8 +68,8 @@ impl Renderer {
         }
     }
 
-    fn average_color(colors: &Vec<Vec3<u8>>) -> Vec3<u8> {
-        let mut final_color = Vec3::<u64>::homogeneous(0);
+    fn average_color(colors: &Vec<Point<u8>>) -> Point<u8> {
+        let mut final_color = Point::<u64>::homogeneous(0);
         for color in colors {
             final_color.x += color.x as u64;
             final_color.y += color.y as u64;
@@ -80,7 +80,7 @@ impl Renderer {
         final_color.y /= colors.len() as u64;
         final_color.z /= colors.len() as u64;
 
-        let final_color = Vec3::new(
+        let final_color = Point::new(
             final_color.x as u8,
             final_color.y as u8,
             final_color.z as u8,
@@ -88,8 +88,8 @@ impl Renderer {
         return final_color;
     }
 
-    pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Vec3<u8> {
-        let mut colors: Vec<Vec3<u8>> = Vec::new();
+    pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Point<u8> {
+        let mut colors: Vec<Point<u8>> = Vec::new();
         colors.reserve(self.resolution.aa.get());
         let row_colums = self.resolution.aa.pixels_per_side();
 

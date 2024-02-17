@@ -1,25 +1,25 @@
 use crate::num::{self, f32};
 use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Ray, Shape};
-use crate::vector::Vec3;
+use crate::vector::Point;
 
 #[derive(Debug)]
 pub struct Triangle {
-    pub p0: Vec3<f32>,
-    pub p1: Vec3<f32>,
-    pub p2: Vec3<f32>,
+    pub p0: Point<f32>,
+    pub p1: Point<f32>,
+    pub p2: Point<f32>,
 
     pub vertex_normals: bool,
-    pub n0: Vec3<f32>,
-    pub n1: Vec3<f32>,
-    pub n2: Vec3<f32>,
+    pub n0: Point<f32>,
+    pub n1: Point<f32>,
+    pub n2: Point<f32>,
 
-    pub color: Vec3<u8>,
+    pub color: Point<u8>,
 }
 
 impl Triangle {
     // can this be done better?
-    pub fn new(p0: Vec3<f32>, p1: Vec3<f32>, p2: Vec3<f32>, color: Vec3<u8>) -> Self {
+    pub fn new(p0: Point<f32>, p1: Point<f32>, p2: Point<f32>, color: Point<u8>) -> Self {
         let (p0, p1, p2) = make_points_unique(&mut p0.clone(), &mut p1.clone(), &mut p2.clone());
         Self {
             p0,
@@ -27,20 +27,20 @@ impl Triangle {
             p2,
             color,
             vertex_normals: false,
-            n0: Vec3::homogeneous(0.0),
-            n1: Vec3::homogeneous(0.0),
-            n2: Vec3::homogeneous(0.0),
+            n0: Point::homogeneous(0.0),
+            n1: Point::homogeneous(0.0),
+            n2: Point::homogeneous(0.0),
         }
     }
 
     pub fn with_vertex_normals(
-        p0: Vec3<f32>,
-        p1: Vec3<f32>,
-        p2: Vec3<f32>,
-        n0: Vec3<f32>,
-        n1: Vec3<f32>,
-        n2: Vec3<f32>,
-        color: Vec3<u8>,
+        p0: Point<f32>,
+        p1: Point<f32>,
+        p2: Point<f32>,
+        n0: Point<f32>,
+        n1: Point<f32>,
+        n2: Point<f32>,
+        color: Point<u8>,
     ) -> Self {
         let (p0, p1, p2) = make_points_unique(&mut p0.clone(), &mut p1.clone(), &mut p2.clone());
         Self {
@@ -56,7 +56,7 @@ impl Triangle {
     }
 
     #[allow(dead_code)]
-    fn edges(&self) -> (Vec3<f32>, Vec3<f32>) {
+    fn edges(&self) -> (Point<f32>, Point<f32>) {
         let edge1 = self.p1 - self.p0;
         let edge2 = self.p2 - self.p0;
         return (edge1, edge2);
@@ -100,7 +100,7 @@ impl Triangle {
         return Some(Hit::new(t, ray.origin, ray.origin * t, normal, self.color));
     }
 
-    fn barycentric_coordinates(&self, point: Vec3<f32>) -> (f32, f32) {
+    fn barycentric_coordinates(&self, point: Point<f32>) -> (f32, f32) {
         // Calculate vectors from p0 to p1 and p0 to p2
         let v0 = self.p1 - self.p0;
         let v1 = self.p2 - self.p0;
@@ -133,12 +133,12 @@ impl Triangle {
         println!();
     }
 
-    fn normal(&self) -> Vec3<f32> {
+    fn normal(&self) -> Point<f32> {
         let (edge1, edge2) = self.edges();
         edge1.cross(&edge2).to_normalized()
     }
 
-    fn vertex_normal(&self, point: Vec3<f32>, intensity: f32) -> Vec3<f32> {
+    fn vertex_normal(&self, point: Point<f32>, intensity: f32) -> Point<f32> {
         let (u, v) = self.barycentric_coordinates(point);
 
         // Interpolate normals at vertices
@@ -170,10 +170,10 @@ impl Triangle {
 /// This is needed for calculating the normal.
 /// If two points are the same, the normal calculation will return NaN.
 fn make_points_unique(
-    p0: &mut Vec3<f32>,
-    p1: &mut Vec3<f32>,
-    p2: &mut Vec3<f32>,
-) -> (Vec3<f32>, Vec3<f32>, Vec3<f32>) {
+    p0: &mut Point<f32>,
+    p1: &mut Point<f32>,
+    p2: &mut Point<f32>,
+) -> (Point<f32>, Point<f32>, Point<f32>) {
     if p0 == p1 {
         *p0 += f32::EPSILON * 10.0;
     }
@@ -198,12 +198,12 @@ impl Shape for Triangle {
     }
 
     fn aabb(&self) -> AABB {
-        let min = Vec3::new(
+        let min = Point::new(
             num::minn(&[self.p0.x, self.p1.x, self.p2.x]),
             num::minn(&[self.p0.y, self.p1.y, self.p2.y]),
             num::minn(&[self.p0.z, self.p1.z, self.p2.z]),
         );
-        let max = Vec3::new(
+        let max = Point::new(
             num::maxn(&[self.p0.x, self.p1.x, self.p2.x]),
             num::maxn(&[self.p0.y, self.p1.y, self.p2.y]),
             num::maxn(&[self.p0.z, self.p1.z, self.p2.z]),
@@ -215,15 +215,15 @@ impl Shape for Triangle {
 #[cfg(test)]
 mod tests {
     use crate::triangle::Triangle;
-    use crate::vector::Vec3;
+    use crate::vector::Point;
 
     #[test]
     fn test_normal() {
         let t = Triangle::new(
-            Vec3::new(-8.350787, 547.8047, -204.87953),
-            Vec3::new(19.802517, 662.56616, -351.3024),
-            Vec3::new(19.802517, 662.56616, -351.3024),
-            Vec3::new(0, 0, 0),
+            Point::new(-8.350787, 547.8047, -204.87953),
+            Point::new(19.802517, 662.56616, -351.3024),
+            Point::new(19.802517, 662.56616, -351.3024),
+            Point::new(0, 0, 0),
         );
         let normal = t.normal();
         assert!(normal.x.is_finite());
@@ -233,9 +233,9 @@ mod tests {
 
     #[test]
     fn test_make_unique() {
-        let mut p0 = Vec3::new(0.1, 0.0, 0.0);
-        let mut p1 = Vec3::new(0.0, 0.0, 0.0);
-        let mut p2 = Vec3::new(0.0, 0.0, 0.0);
+        let mut p0 = Point::new(0.1, 0.0, 0.0);
+        let mut p1 = Point::new(0.0, 0.0, 0.0);
+        let mut p2 = Point::new(0.0, 0.0, 0.0);
 
         let (p0, p1, p2) = super::make_points_unique(&mut p0, &mut p1, &mut p2);
         assert!(p0 != p1);

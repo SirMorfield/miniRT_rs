@@ -1,4 +1,4 @@
-use crate::vector::Vec3;
+use crate::vector::Point;
 use minifb::Key;
 pub enum Direction {
     Up,
@@ -16,14 +16,14 @@ pub enum Direction {
 }
 
 pub struct Camera {
-    pub pos: Vec3<f32>,
-    pub dir: Vec3<f32>,
+    pub pos: Point<f32>,
+    pub dir: Point<f32>,
     pub fov: f32,
     pub fow_tan: f32,
 }
 
 impl Camera {
-    pub fn new(pos: Vec3<f32>, dir: Vec3<f32>, fov: f32) -> Self {
+    pub fn new(pos: Point<f32>, dir: Point<f32>, fov: f32) -> Self {
         Self {
             pos,
             dir: dir.to_normalized(),

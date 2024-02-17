@@ -1,17 +1,17 @@
 use crate::num::Float0to1;
 use crate::random_iterator::RandomIterator;
 use crate::resolution::Resolution;
-use crate::vector::Vec3;
+use crate::vector::Point;
 use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
 
-pub fn to_u32(color: Vec3<u8>) -> u32 {
+pub fn to_u32(color: Point<u8>) -> u32 {
     (color.x as u32) | ((color.y as u32) << 8) | ((color.z as u32) << 16)
 }
 
-pub fn to_u8(color: u32) -> Vec3<u8> {
-    Vec3::new(
+pub fn to_u8(color: u32) -> Point<u8> {
+    Point::new(
         (color & 0xFF) as u8,
         ((color >> 8) & 0xFF) as u8,
         ((color >> 16) & 0xFF) as u8,
@@ -66,7 +66,7 @@ impl FrameBuffer {
         }
     }
 
-    pub fn set_pixel(&mut self, x: usize, y: usize, color: Vec3<u8>) {
+    pub fn set_pixel(&mut self, x: usize, y: usize, color: Point<u8>) {
         let i = x + y * self.resolution.width.get();
         if i >= self.buffer.len() {
             panic!("Index out of bounds");
@@ -75,7 +75,7 @@ impl FrameBuffer {
     }
 
     #[allow(dead_code)]
-    pub fn get_pixel(&self, x: usize, y: usize) -> Option<Vec3<u8>> {
+    pub fn get_pixel(&self, x: usize, y: usize) -> Option<Point<u8>> {
         let i = x + y * self.resolution.width.get();
         if i >= self.buffer.len() {
             return None;

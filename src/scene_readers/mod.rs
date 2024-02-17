@@ -1,7 +1,7 @@
 use crate::num::Float0to1;
 use crate::octree::Octree;
 use crate::triangle::Triangle;
-use crate::{camera::Camera, light::Light, vector::Vec3};
+use crate::{camera::Camera, light::Light, vector::Point};
 
 mod obj;
 mod rt;
@@ -40,8 +40,8 @@ impl Scene {
         }
     }
 
-    pub fn void(&self) -> Vec3<u8> {
-        Vec3::homogeneous(0)
+    pub fn void(&self) -> Point<u8> {
+        Point::homogeneous(0)
     }
 
     #[allow(dead_code)]
@@ -98,8 +98,8 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
 
 pub fn default_ambient() -> Light {
     Light::new(
-        Vec3::homogeneous(0.0),
+        Point::homogeneous(0.0),
         Float0to1::new(0.5).unwrap(),
-        Vec3::homogeneous(255),
+        Point::homogeneous(255),
     )
 }

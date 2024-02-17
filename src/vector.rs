@@ -6,7 +6,7 @@ use std::{
 use num_traits::{float::FloatCore, Float};
 
 #[derive(Debug, Clone, Copy)]
-pub struct Vec3<T> {
+pub struct Point<T> {
     pub x: T,
     pub y: T,
     pub z: T,
@@ -14,13 +14,13 @@ pub struct Vec3<T> {
 
 macro_rules! impl_overload {
     ($Op:ident $Fn:ident $OpSymbol:tt) => {
-        impl<T> $Op for Vec3<T>
+        impl<T> $Op for Point<T>
         where
             T: $Op<Output = T>,
         {
             type Output = Self;
             fn $Fn(self, rhs: Self) -> Self {
-				return Vec3 {
+				return Point {
 					x: self.x $OpSymbol rhs.x,
 					y: self.y $OpSymbol rhs.y,
 					z: self.z $OpSymbol rhs.z,
@@ -32,7 +32,7 @@ macro_rules! impl_overload {
 
 macro_rules! impl_overload_assign {
 	($Op:ident $Fn:ident $OpSymbol:tt) => {
-		impl<T> $Op for Vec3<T>
+		impl<T> $Op for Point<T>
 		where
 			T: $Op,
 		{
@@ -47,13 +47,13 @@ macro_rules! impl_overload_assign {
 
 macro_rules! impl_overload_rhs {
 	($Op:ident $Fn:ident $OpSymbol:tt) => {
-		impl<T: $Op<Output = T>> $Op<T> for Vec3<T>
+		impl<T: $Op<Output = T>> $Op<T> for Point<T>
 		where
     		T: Clone + Copy,
 	{
 			type Output = Self;
 			fn $Fn(self, rhs: T) -> Self {
-				return Vec3 {
+				return Point {
 					x: self.x $OpSymbol rhs,
 					y: self.y $OpSymbol rhs,
 					z: self.z $OpSymbol rhs,
@@ -64,7 +64,7 @@ macro_rules! impl_overload_rhs {
 }
 macro_rules! impl_overload_rhs_assign {
 	($Op:ident $Fn:ident $OpSymbol:tt) => {
-		impl<T: $Op> $Op<T> for Vec3<T>
+		impl<T: $Op> $Op<T> for Point<T>
 		where
 			T: Clone + Copy,
 	{
@@ -94,13 +94,13 @@ impl_overload_rhs_assign!(SubAssign sub_assign -=);
 impl_overload_rhs_assign!(MulAssign mul_assign *=);
 impl_overload_rhs_assign!(DivAssign div_assign /=);
 
-impl<T> Neg for Vec3<T>
+impl<T> Neg for Point<T>
 where
     T: Neg<Output = T>,
 {
     type Output = Self;
     fn neg(self) -> Self {
-        return Vec3 {
+        return Point {
             x: -self.x,
             y: -self.y,
             z: -self.z,
@@ -108,28 +108,28 @@ where
     }
 }
 
-impl<T: PartialEq> PartialEq for Vec3<T> {
+impl<T: PartialEq> PartialEq for Point<T> {
     fn eq(&self, other: &Self) -> bool {
         self.x == other.x && self.y == other.y && self.z == other.z
     }
 }
 
-impl<T: Eq> Eq for Vec3<T> {}
+impl<T: Eq> Eq for Point<T> {}
 
 #[allow(dead_code)]
-impl<T> Vec3<T>
+impl<T> Point<T>
 where
     T: Clone + Copy,
 {
     pub fn new(x: T, y: T, z: T) -> Self {
-        Vec3 { x, y, z }
+        Point { x, y, z }
     }
 
     pub fn homogeneous(xyz: T) -> Self
     where
         T: Clone,
     {
-        Vec3 {
+        Point {
             x: xyz,
             y: xyz,
             z: xyz,
@@ -140,7 +140,7 @@ where
     where
         T: num_traits::float::Float,
     {
-        let v = Vec3::new(x, y, z);
+        let v = Point::new(x, y, z);
         if !v.is_unit() {
             return None;
         }
@@ -153,23 +153,23 @@ where
         T: DivAssign,
         T: num_traits::float::Float,
     {
-        let mut v = Vec3::new(x, y, z);
+        let mut v = Point::new(x, y, z);
         v.normalize();
         return v;
     }
 
-    pub fn from_vec3(other: &Vec3<T>) -> Self
+    pub fn from_Point(other: &Point<T>) -> Self
     where
         T: Clone,
     {
-        Vec3 {
+        Point {
             x: other.x,
             y: other.y,
             z: other.z,
         }
     }
 
-    pub fn dot(self, other: &Vec3<T>) -> T
+    pub fn dot(self, other: &Point<T>) -> T
     where
         T: Mul<Output = T>,
         T: Add<Output = T>,
@@ -178,13 +178,13 @@ where
         return self.x * other.x + self.y * other.y + self.z * other.z;
     }
 
-    pub fn cross(self, other: &Vec3<T>) -> Vec3<T>
+    pub fn cross(self, other: &Point<T>) -> Point<T>
     where
         T: Mul<Output = T>,
         T: Sub<Output = T>,
         T: Clone,
     {
-        return Vec3::new(
+        return Point::new(
             self.y * other.z - self.z * other.y,
             self.z * other.x - self.x * other.z,
             self.x * other.y - self.y * other.x,
@@ -225,37 +225,37 @@ where
         T: num_traits::float::Float,
     {
         // TODO
-        let length = Vec3::new(self.x, self.y, self.z).length();
+        let length = Point::new(self.x, self.y, self.z).length();
         self.x /= length;
         self.y /= length;
         self.z /= length;
     }
 
-    pub fn to_normalized(&self) -> Vec3<T>
+    pub fn to_normalized(&self) -> Point<T>
     where
         T: Div<Output = T>,
         T: DivAssign,
         T: num_traits::float::Float,
     {
-        let mut new = Vec3::new(self.x, self.y, self.z);
+        let mut new = Point::new(self.x, self.y, self.z);
         new.normalize();
         return new;
     }
 
-    pub fn translate(self, other: Vec3<T>, t: T) -> Vec3<T>
+    pub fn translate(self, other: Point<T>, t: T) -> Point<T>
     where
         T: Add<Output = T>,
         T: Mul<Output = T>,
         T: Clone,
     {
-        return Vec3::new(
+        return Point::new(
             self.x + other.x * t,
             self.y + other.y * t,
             self.z + other.z * t,
         );
     }
 
-    pub fn distance2(&self, other: &Vec3<T>) -> T
+    pub fn distance2(&self, other: &Point<T>) -> T
     where
         T: Clone,
         T: Sub<Output = T>,
@@ -267,7 +267,7 @@ where
             + (self.z - other.z) * (self.z - other.z);
     }
 
-    pub fn distance(&self, other: &Vec3<T>) -> T
+    pub fn distance(&self, other: &Point<T>) -> T
     where
         T: Clone,
         T: Sub<Output = T>,
@@ -278,22 +278,22 @@ where
         return self.distance2(other).sqrt();
     }
 
-    pub fn min(self, other: Vec3<T>) -> Vec3<T>
+    pub fn min(self, other: Point<T>) -> Point<T>
     where
         T: std::cmp::Ord,
     {
-        return Vec3::new(
+        return Point::new(
             std::cmp::min(self.x, other.x),
             std::cmp::min(self.y, other.y),
             std::cmp::min(self.z, other.z),
         );
     }
 
-    pub fn min_unsafe(self, other: Vec3<T>) -> Vec3<T>
+    pub fn min_unsafe(self, other: Point<T>) -> Point<T>
     where
         T: std::cmp::PartialOrd,
     {
-        return Vec3::new(
+        return Point::new(
             std::cmp::min_by(self.x, other.x, |a, b| {
                 a.partial_cmp(&b).unwrap_or(Ordering::Greater)
             }),
@@ -306,22 +306,22 @@ where
         );
     }
 
-    pub fn max(self, other: Vec3<T>) -> Vec3<T>
+    pub fn max(self, other: Point<T>) -> Point<T>
     where
         T: std::cmp::Ord,
     {
-        return Vec3::new(
+        return Point::new(
             std::cmp::max(self.x, other.x),
             std::cmp::max(self.y, other.y),
             std::cmp::max(self.z, other.z),
         );
     }
 
-    pub fn max_unsafe(self, other: Vec3<T>) -> Vec3<T>
+    pub fn max_unsafe(self, other: Point<T>) -> Point<T>
     where
         T: std::cmp::PartialOrd,
     {
-        return Vec3::new(
+        return Point::new(
             std::cmp::max_by(self.x, other.x, |a, b| {
                 a.partial_cmp(&b).unwrap_or(Ordering::Greater)
             }),

@@ -2,11 +2,11 @@ use super::{FileType, Scene};
 use crate::light::Light;
 use crate::num::Float0to1;
 use crate::octree::Octree;
-use crate::vector::Vec3;
+use crate::vector::Point;
 use crate::{camera::Camera, triangle::Triangle};
 use std::io::{self, BufRead};
 
-fn parse_rgb(s: &str) -> Option<Vec3<u8>> {
+fn parse_rgb(s: &str) -> Option<Point<u8>> {
     let numbers: Vec<&str> = s.split(",").collect();
     if numbers.iter().count() != 3 {
         return None;
@@ -16,10 +16,10 @@ fn parse_rgb(s: &str) -> Option<Vec3<u8>> {
     let g = numbers[1].parse::<u8>().ok()?;
     let b = numbers[2].parse::<u8>().ok()?;
 
-    return Some(Vec3::new(r, g, b));
+    return Some(Point::new(r, g, b));
 }
 
-fn parse_vec3(s: &str, should_be_normalized: bool) -> Option<Vec3<f32>> {
+fn parse_Point(s: &str, should_be_normalized: bool) -> Option<Point<f32>> {
     let parts: Vec<&str> = s.split(",").collect();
     if parts.len() != 3 {
         return None;
@@ -29,8 +29,8 @@ fn parse_vec3(s: &str, should_be_normalized: bool) -> Option<Vec3<f32>> {
     let z = parts[2].parse::<f32>().ok()?;
 
     return match should_be_normalized {
-        true => Vec3::unit(x, y, z),
-        false => Some(Vec3::new(x, y, z)),
+        true => Point::unit(x, y, z),
+        false => Some(Point::new(x, y, z)),
     };
 }
 
@@ -41,9 +41,9 @@ fn parse_triangle(t: Vec<&str>) -> Option<Triangle> {
     if t[0] != "tr" {
         return None;
     }
-    let v0 = parse_vec3(t[1], false)?;
-    let v1 = parse_vec3(t[2], false)?;
-    let v2 = parse_vec3(t[3], false)?;
+    let v0 = parse_Point(t[1], false)?;
+    let v1 = parse_Point(t[2], false)?;
+    let v2 = parse_Point(t[3], false)?;
     let color = parse_rgb(t[4])?;
 
     return Some(Triangle::new(v0, v1, v2, color));
@@ -54,7 +54,7 @@ fn parse_light(blocks: Vec<&str>) -> Option<Light> {
         return None;
     }
 
-    let origin = parse_vec3(blocks.get(1)?, false)?;
+    let origin = parse_Point(blocks.get(1)?, false)?;
     let intensity = blocks.get(2)?.parse::<f32>().ok()?;
     let intensity = Float0to1::new(intensity)?;
     let color = parse_rgb(blocks.get(3)?)?;
@@ -66,8 +66,8 @@ fn parse_camera(blocks: Vec<&str>) -> Option<Camera> {
     if blocks.get(0) != Some(&"c") {
         return None;
     }
-    let origin = parse_vec3(blocks.get(1)?, false)?;
-    let direction = parse_vec3(blocks.get(2)?, true)?;
+    let origin = parse_Point(blocks.get(1)?, false)?;
+    let direction = parse_Point(blocks.get(2)?, true)?;
     let fov = blocks.get(3)?.parse::<f32>().ok()?;
 
     return Some(Camera::new(origin, direction, fov));
@@ -84,7 +84,7 @@ fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
     let color = parse_rgb(blocks.get(2)?)?;
 
     return Some(Light::new(
-        Vec3::homogeneous(0.0),
+        Point::homogeneous(0.0),
         Float0to1::new(intensity)?,
         color,
     ));
@@ -100,14 +100,14 @@ pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
     let mut triangles: Vec<Triangle> = Vec::new();
 
     let mut ambient = Light::new(
-        Vec3::homogeneous(0.0),
+        Point::homogeneous(0.0),
         Float0to1::new(0.0).unwrap(),
-        Vec3::homogeneous(0),
+        Point::homogeneous(0),
     );
     let mut lights: Vec<Light> = Vec::new();
     let mut camera = Camera::new(
-        Vec3::new(35.0, 18.0, 31.0),
-        Vec3::new(-0.7247, -0.18, -0.78087),
+        Point::new(35.0, 18.0, 31.0),
+        Point::new(-0.7247, -0.18, -0.78087),
         70.0,
     );
 

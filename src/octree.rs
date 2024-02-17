@@ -1,22 +1,22 @@
 use crate::num::f32::{max, min};
 use crate::util::{Hit, Ray, Shape};
-use crate::vector::Vec3;
+use crate::vector::Point;
 use std::vec::Vec;
 
 #[derive(Debug)]
 pub struct AABB {
-    min: Vec3<f32>,
-    max: Vec3<f32>,
+    min: Point<f32>,
+    max: Point<f32>,
 }
 
 impl AABB {
-    pub fn new(min: Vec3<f32>, max: Vec3<f32>) -> Self {
+    pub fn new(min: Point<f32>, max: Point<f32>) -> Self {
         Self { min, max }
     }
 
     // https://gamedev.stackexchange.com/questions/18436
     pub fn hit(&self, r: &Ray) -> bool {
-        let dirfrac = Vec3::new(1.0 / r.dir.x, 1.0 / r.dir.y, 1.0 / r.dir.z);
+        let dirfrac = Point::new(1.0 / r.dir.x, 1.0 / r.dir.y, 1.0 / r.dir.z);
         let t1 = (self.min.x - r.origin.x) * dirfrac.x;
         let t2 = (self.max.x - r.origin.x) * dirfrac.x;
         let t3 = (self.min.y - r.origin.y) * dirfrac.y;
@@ -44,7 +44,7 @@ impl AABB {
         return true;
     }
 
-    pub fn is_inside(&self, point: &Vec3<f32>) -> bool {
+    pub fn is_inside(&self, point: &Point<f32>) -> bool {
         return point.x >= self.min.x
             && point.x <= self.max.x
             && point.y >= self.min.y
@@ -53,7 +53,7 @@ impl AABB {
             && point.z <= self.max.z;
     }
 
-    pub fn is_inside_all(&self, points: &[Vec3<f32>]) -> bool {
+    pub fn is_inside_all(&self, points: &[Point<f32>]) -> bool {
         points.iter().all(|point| self.is_inside(point))
     }
 
@@ -63,29 +63,29 @@ impl AABB {
         let mut children = Vec::with_capacity(8);
         children.push(AABB::new(self.min, center));
         children.push(AABB::new(
-            Vec3::new(center.x, self.min.y, self.min.z),
-            Vec3::new(self.max.x, center.y, center.z),
+            Point::new(center.x, self.min.y, self.min.z),
+            Point::new(self.max.x, center.y, center.z),
         ));
         children.push(AABB::new(
-            Vec3::new(center.x, self.min.y, center.z),
-            Vec3::new(self.max.x, center.y, self.max.z),
+            Point::new(center.x, self.min.y, center.z),
+            Point::new(self.max.x, center.y, self.max.z),
         ));
         children.push(AABB::new(
-            Vec3::new(self.min.x, self.min.y, center.z),
-            Vec3::new(center.x, center.y, self.max.z),
+            Point::new(self.min.x, self.min.y, center.z),
+            Point::new(center.x, center.y, self.max.z),
         ));
         children.push(AABB::new(
-            Vec3::new(self.min.x, center.y, self.min.z),
-            Vec3::new(center.x, self.max.y, center.z),
+            Point::new(self.min.x, center.y, self.min.z),
+            Point::new(center.x, self.max.y, center.z),
         ));
         children.push(AABB::new(
-            Vec3::new(center.x, center.y, self.min.z),
-            Vec3::new(self.max.x, self.max.y, center.z),
+            Point::new(center.x, center.y, self.min.z),
+            Point::new(self.max.x, self.max.y, center.z),
         ));
         children.push(AABB::new(center, self.max));
         children.push(AABB::new(
-            Vec3::new(self.min.x, center.y, center.z),
-            Vec3::new(center.x, self.max.y, self.max.z),
+            Point::new(self.min.x, center.y, center.z),
+            Point::new(center.x, self.max.y, self.max.z),
         ));
         return children;
     }
@@ -94,30 +94,30 @@ impl AABB {
 #[cfg(test)]
 mod aabb_test {
     use crate::octree::AABB;
-    use crate::vector::Vec3;
+    use crate::vector::Point;
 
     #[test]
     fn real() {
-        let aabb = AABB::new(Vec3::new(0.0, 0.0, 0.0), Vec3::new(1.0, 1.0, 1.0));
-        assert_eq!(aabb.is_inside(&Vec3::new(0.5, 0.5, 0.5)), true);
-        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 0.0)), true);
-        assert_eq!(aabb.is_inside(&Vec3::new(1.0, 1.0, 1.0)), true);
-        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 1.0)), true);
+        let aabb = AABB::new(Point::new(0.0, 0.0, 0.0), Point::new(1.0, 1.0, 1.0));
+        assert_eq!(aabb.is_inside(&Point::new(0.5, 0.5, 0.5)), true);
+        assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, 0.0)), true);
+        assert_eq!(aabb.is_inside(&Point::new(1.0, 1.0, 1.0)), true);
+        assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, 1.0)), true);
 
-        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 1.1)), false);
-        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, -0.1)), false);
+        assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, 1.1)), false);
+        assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, -0.1)), false);
     }
     #[test]
     fn infinity() {
         let aabb = AABB::new(
-            Vec3::homogeneous(-f32::INFINITY),
-            Vec3::homogeneous(f32::INFINITY),
+            Point::homogeneous(-f32::INFINITY),
+            Point::homogeneous(f32::INFINITY),
         );
-        assert_eq!(aabb.is_inside(&Vec3::new(0.0, 0.0, 0.0)), true);
-        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::MAX)), true);
-        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::MIN)), true);
-        assert_eq!(aabb.is_inside(&Vec3::homogeneous(f32::INFINITY)), true);
-        assert_eq!(aabb.is_inside(&Vec3::homogeneous(-f32::INFINITY)), true);
+        assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, 0.0)), true);
+        assert_eq!(aabb.is_inside(&Point::homogeneous(f32::MAX)), true);
+        assert_eq!(aabb.is_inside(&Point::homogeneous(f32::MIN)), true);
+        assert_eq!(aabb.is_inside(&Point::homogeneous(f32::INFINITY)), true);
+        assert_eq!(aabb.is_inside(&Point::homogeneous(-f32::INFINITY)), true);
     }
 }
 
@@ -127,10 +127,10 @@ const MAX_SHAPES_PER_OCTREE: usize = 10;
 /// Usage:
 /// ```
 /// let shapes = vec![Triangle::new(
-///    Vec3::new(0.0, 0.0, 0.0),
-///    Vec3::new(1.0, 0.0, 0.0),
-///    Vec3::new(0.0, 1.0, 0.0),
-///    Vec3::new(255, 0, 0),
+///    Point::new(0.0, 0.0, 0.0),
+///    Point::new(1.0, 0.0, 0.0),
+///    Point::new(0.0, 1.0, 0.0),
+///    Point::new(255, 0, 0),
 /// )];
 /// let octree = Octree::new(shapes);
 /// assert_eq!(octree.shapes_count(), 1);
@@ -148,7 +148,7 @@ where
 {
     pub fn new(shapes: Vec<T>) -> Self {
         let mut this = Self {
-            aabb: AABB::new(Vec3::homogeneous(f32::MIN), Vec3::homogeneous(f32::MAX)),
+            aabb: AABB::new(Point::homogeneous(f32::MIN), Point::homogeneous(f32::MAX)),
             children: Vec::new(),
             shapes,
         };
