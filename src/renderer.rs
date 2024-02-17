@@ -91,7 +91,7 @@ impl Renderer {
     pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Vec3<u8> {
         let mut colors: Vec<Vec3<u8>> = Vec::new();
         colors.reserve(self.resolution.aa.get());
-        let row_colums = self.resolution.pixels_per_side();
+        let row_colums = self.resolution.aa.pixels_per_side();
 
         for sub_y in 0..row_colums {
             for sub_x in 0..row_colums {

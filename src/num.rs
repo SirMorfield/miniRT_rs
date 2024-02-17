@@ -77,7 +77,7 @@ impl Float0to1 {
     }
 }
 
-fn is_power_of_2(x: usize) -> bool {
+pub fn is_power_of_2(x: usize) -> bool {
     if x == 0 {
         return false;
     }

@@ -4,8 +4,7 @@ use std::{
 };
 
 use crate::{
-    num::PowerOf2,
-    resolution::Resolution,
+    resolution::{AALevel, Resolution},
     scene_readers::{read_scene, Scene},
 };
 
@@ -18,7 +17,7 @@ pub fn get_resolution() -> Resolution {
     let resolution = Resolution::new(
         NonZeroUsize::new(700).unwrap(),
         NonZeroUsize::new(700).unwrap(),
-        PowerOf2::new(4).unwrap(),
+        AALevel::new(1).unwrap(),
     );
     resolution
 }
