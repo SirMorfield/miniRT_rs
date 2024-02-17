@@ -14,6 +14,7 @@ use resolution::Resolution;
 use std::num::NonZeroUsize;
 use std::sync::RwLock;
 use std::sync::{mpsc, Arc, Mutex};
+use threadpool::ThreadPool;
 
 pub struct MultiThreadedRenderer {
     progress_logger: ProgressLogger,
@@ -46,35 +47,31 @@ impl MultiThreadedRenderer {
     pub fn render(&mut self, scene: &Arc<RwLock<Scene>>, log: bool) {
         self.reset_progress();
         let (tx, rx) = mpsc::channel();
-        for _ in 0..self.num_threads {
-            let fb = self.frame_buffer.clone();
+        let mut fb = self.frame_buffer.lock().unwrap();
+        let pool = ThreadPool::new(self.num_threads);
+
+        loop {
+            let pixel = fb.get_coordinate();
+            if pixel == None {
+                break;
+            }
+            let pixel = pixel.unwrap();
             let tx = tx.clone();
             let renderer = self.renderer.clone();
             let scene = scene.clone();
-            std::thread::spawn(move || loop {
-                let mut fb = fb.lock().unwrap();
-                let coordinate = fb.get_coordinate();
-                drop(fb); // unlock mutex as soon as possible
-
-                match coordinate {
-                    None => break,
-                    Some((x, y)) => {
-                        let scene = scene.read().unwrap();
-                        let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
-                        tx.send((x, y, color)).unwrap();
-                    }
-                }
+            pool.execute(move || {
+                let (x, y) = pixel;
+                let scene = scene.read().unwrap();
+                let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
+                tx.send((x, y, color)).unwrap();
             });
         }
         drop(tx);
 
         for (x, y, color) in rx {
-            let mut fb = self.frame_buffer.lock().unwrap();
             fb.set_pixel(x, y, color);
-            let progress = fb.progress();
-            drop(fb);
             if log {
-                self.progress_logger.log(progress);
+                self.progress_logger.log(fb.progress());
             }
         }
         if log {
@@ -82,7 +79,7 @@ impl MultiThreadedRenderer {
         }
         let scene = scene.read().unwrap();
         if scene.file_type == FileType::Obj {
-            self.frame_buffer.lock().unwrap().flip(Flip::Horizontal);
+            fb.flip(Flip::Horizontal);
         }
     }
 }

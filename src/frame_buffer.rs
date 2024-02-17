@@ -27,7 +27,7 @@ pub enum Flip {
 pub struct FrameBuffer {
     buffer: Vec<u32>,
     resolution: Resolution,
-    pixel_index: RandomIterator,
+    pub pixel_index: RandomIterator,
 }
 
 impl FrameBuffer {
