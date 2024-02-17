@@ -14,6 +14,16 @@ impl AABB {
         Self { min, max }
     }
 
+    pub fn from_points(points: &[Point<f32>]) -> Self {
+        let mut min = Point::homogeneous(f32::INFINITY);
+        let mut max = Point::homogeneous(-f32::INFINITY);
+        for point in points {
+            min = min.min_unsafe(*point);
+            max = max.max_unsafe(*point);
+        }
+        return Self::new(min, max);
+    }
+
     // https://gamedev.stackexchange.com/questions/18436
     pub fn hit(&self, r: &Ray) -> bool {
         let dirfrac = Point::new(1.0 / r.dir.x, 1.0 / r.dir.y, 1.0 / r.dir.z);

@@ -198,17 +198,7 @@ impl Shape for Triangle {
     }
 
     fn aabb(&self) -> AABB {
-        let min = Point::new(
-            num::minn(&[self.p0.x, self.p1.x, self.p2.x]),
-            num::minn(&[self.p0.y, self.p1.y, self.p2.y]),
-            num::minn(&[self.p0.z, self.p1.z, self.p2.z]),
-        );
-        let max = Point::new(
-            num::maxn(&[self.p0.x, self.p1.x, self.p2.x]),
-            num::maxn(&[self.p0.y, self.p1.y, self.p2.y]),
-            num::maxn(&[self.p0.z, self.p1.z, self.p2.z]),
-        );
-        return AABB::new(min, max);
+        AABB::from_points(&[self.p0, self.p1, self.p2])
     }
 }
 
