@@ -5,8 +5,14 @@ pub enum Direction {
     Down,
     Left,
     Right,
+
     Forward,
     Backward,
+
+    PitchUp,
+    PitchDown,
+    YawLeft,
+    YawRight,
 }
 
 pub struct Camera {
@@ -34,16 +40,29 @@ impl Camera {
             Direction::Right => self.pos.x += amount,
             Direction::Forward => self.pos += self.dir * amount,
             Direction::Backward => self.pos -= self.dir * amount,
+            Direction::PitchUp => self.dir.y += amount,
+            Direction::PitchDown => self.dir.y -= amount,
+            Direction::YawLeft => self.dir.x -= amount,
+            Direction::YawRight => self.dir.x += amount,
         }
     }
-    pub fn move_from_keyboard(&mut self, key: Key, speed: f32) {
+    pub fn keyboard(&mut self, key: Key) {
+        let move_speed = 10.0;
+        let yaw_pitch_speed = 0.1;
+
         match key {
-            Key::W => self.move_to(Direction::Forward, speed),
-            Key::S => self.move_to(Direction::Backward, speed),
-            Key::A => self.move_to(Direction::Left, speed),
-            Key::D => self.move_to(Direction::Right, speed),
-            Key::Up => self.move_to(Direction::Up, speed),
-            Key::Down => self.move_to(Direction::Down, speed),
+            Key::W => self.move_to(Direction::Up, move_speed),
+            Key::S => self.move_to(Direction::Down, move_speed),
+            Key::A => self.move_to(Direction::Left, move_speed),
+            Key::D => self.move_to(Direction::Right, move_speed),
+            Key::F => self.move_to(Direction::Forward, move_speed),
+            Key::B => self.move_to(Direction::Backward, move_speed),
+            Key::Up => self.move_to(Direction::PitchUp, yaw_pitch_speed),
+            Key::Down => self.move_to(Direction::PitchDown, yaw_pitch_speed),
+            Key::Left => self.move_to(Direction::YawLeft, yaw_pitch_speed),
+            Key::Right => self.move_to(Direction::YawRight, yaw_pitch_speed),
+
+            Key::P => println!("pos: {:?}", self.pos),
             _ => {}
         }
     }
