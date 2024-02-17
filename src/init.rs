@@ -8,8 +8,7 @@ use std::{
     time,
 };
 
-pub fn get_scene() -> Result<Scene, String> {
-    let path = get_render_file().unwrap();
+pub fn get_scene(path: &Path) -> Result<Scene, String> {
     let scene = read_scene(&path).unwrap();
     scene.print_stats();
     Ok(scene)
@@ -43,11 +42,26 @@ pub fn get_window(resolution: &Resolution) -> minifb::Window {
     window
 }
 
-fn get_render_file() -> Option<PathBuf> {
-    let argv = std::env::args().collect::<Vec<_>>();
-    if argv.len() != 2 {
-        println!("Usage: {} <scene.[rt,obj,blend]>", argv.get(0).unwrap());
-        return None;
+pub struct Argv {
+    pub input_file: PathBuf,
+    pub output_file: Option<PathBuf>,
+}
+
+impl Argv {
+    pub fn new() -> Result<Self, String> {
+        let argv = std::env::args().collect::<Vec<_>>();
+        if argv.len() <= 1 {
+            return Err(format!(
+                "Usage: {} <scene.[rt,obj,blend]>",
+                argv.get(0).unwrap()
+            ));
+        }
+        let input_file = argv.get(1).map(|s| PathBuf::from(s)).unwrap();
+        let output_file = argv.get(2).map(|s| PathBuf::from(s));
+
+        Ok(Self {
+            input_file,
+            output_file,
+        })
     }
-    Path::new(argv.get(1).unwrap()).canonicalize().ok()
 }

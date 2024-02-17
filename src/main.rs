@@ -22,6 +22,7 @@ use crate::threading::MultiThreadedRenderer;
 use init::get_resolution;
 use init::get_scene;
 use init::get_window;
+use init::Argv;
 use minifb::{Key, Window};
 use std::sync::Arc;
 use std::sync::RwLock;
@@ -54,9 +55,17 @@ fn loop_until_closed(
 }
 
 fn main() {
+    let argv = Argv::new().unwrap();
     let resolution = get_resolution();
     let mut renderer = MultiThreadedRenderer::new(resolution);
-    let scene = Arc::new(RwLock::new(get_scene().unwrap()));
-    let mut window = get_window(&resolution);
-    loop_until_closed(&mut window, &mut renderer, scene, resolution);
+    let scene = Arc::new(RwLock::new(get_scene(&argv.input_file).unwrap()));
+
+    if let Some(output_file) = argv.output_file {
+        renderer.render(&scene, true);
+        let fb = renderer.frame_buffer.lock().unwrap();
+        fb.save_as_bmp(&output_file).unwrap();
+    } else {
+        let mut window = get_window(&resolution);
+        loop_until_closed(&mut window, &mut renderer, scene, resolution);
+    }
 }
