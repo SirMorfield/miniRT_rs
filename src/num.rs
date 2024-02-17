@@ -97,20 +97,6 @@ mod tests2 {
     }
 }
 
-#[derive(PartialEq, PartialOrd, Debug, Clone, Copy)]
-pub struct PowerOf2(usize);
-impl PowerOf2 {
-    pub fn new(value: usize) -> Option<Self> {
-        match value {
-            x if !is_power_of_2(x) => None,
-            _ => Some(PowerOf2(value)),
-        }
-    }
-    pub fn get(&self) -> usize {
-        self.0
-    }
-}
-
 pub fn minn<T>(arr: &[T]) -> T
 where
     T: PartialOrd + Copy,

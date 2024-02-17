@@ -61,6 +61,7 @@ pub trait Shape {
     fn aabb(&self) -> AABB;
 }
 
+#[allow(dead_code)]
 pub fn fps_to_duration(fps: u32) -> std::time::Duration {
     std::time::Duration::from_micros(1_000_000 / fps as u64)
 }

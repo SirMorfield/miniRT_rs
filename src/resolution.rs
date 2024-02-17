@@ -1,4 +1,4 @@
-use crate::num::{is_power_of_2, PowerOf2};
+use crate::num::is_power_of_2;
 use num_integer::Roots;
 use std::num::NonZeroUsize;
 
