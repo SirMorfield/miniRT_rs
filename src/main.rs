@@ -22,9 +22,10 @@ use crate::threading::MultiThreadedRenderer;
 use init::get_resolution;
 use init::get_scene;
 use init::get_window;
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, Window};
 use std::sync::Arc;
 use std::sync::RwLock;
+use std::time::Duration;
 
 fn loop_until_closed(
     window: &mut Window,
@@ -32,15 +33,23 @@ fn loop_until_closed(
     scene: Arc<RwLock<scene_readers::Scene>>,
     res: resolution::Resolution,
 ) {
+    let mut pressed = true;
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        renderer.render(&scene, false);
-        let fb = renderer.frame_buffer.lock().unwrap();
         for key in window.get_keys() {
             scene.write().unwrap().camera.keyboard(key);
+            pressed = true;
         }
-        window
-            .update_with_buffer(&fb.buffer(), res.width.get(), res.height.get())
-            .unwrap();
+        if pressed {
+            renderer.render(&scene, false);
+            let fb = renderer.frame_buffer.lock().unwrap();
+            window
+                .update_with_buffer(&fb.buffer(), res.width.get(), res.height.get())
+                .unwrap();
+        } else {
+            window.update();
+            std::thread::sleep(Duration::from_micros(16600));
+        }
+        pressed = false;
     }
 }
 
@@ -49,20 +58,5 @@ fn main() {
     let mut renderer = MultiThreadedRenderer::new(resolution);
     let scene = Arc::new(RwLock::new(get_scene().unwrap()));
     let mut window = get_window(&resolution);
-
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        renderer.render(&scene, false);
-        let fb = renderer.frame_buffer.lock().unwrap();
-        for key in window.get_keys() {
-            scene.write().unwrap().camera.keyboard(key);
-        }
-
-        window
-            .update_with_buffer(
-                &fb.buffer(),
-                resolution.width.get(),
-                resolution.height.get(),
-            )
-            .unwrap();
-    }
+    loop_until_closed(&mut window, &mut renderer, scene, resolution);
 }

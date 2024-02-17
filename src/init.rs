@@ -5,6 +5,7 @@ use crate::{
 use std::{
     num::NonZeroUsize,
     path::{Path, PathBuf},
+    time,
 };
 
 pub fn get_scene() -> Result<Scene, String> {
@@ -38,6 +39,7 @@ pub fn get_window(resolution: &Resolution) -> minifb::Window {
             resolution.height.get(),
         )
         .unwrap();
+    window.limit_update_rate(Some(time::Duration::from_micros(16600)));
     window
 }
 
