@@ -23,6 +23,7 @@ use init::get_resolution;
 use init::get_scene;
 use minifb::{Key, Window, WindowOptions};
 use std::sync::Arc;
+use std::sync::RwLock;
 use util::fps_to_duration;
 
 //https://crates.io/crates/minifb
@@ -30,7 +31,9 @@ fn main() {
     let resolution = get_resolution();
     resolution.print();
     let mut renderer = MultiThreadedRenderer::new(resolution);
-    let scene = Arc::new(get_scene().unwrap());
+    let scene = get_scene().unwrap();
+    let scene_arc = Arc::new(RwLock::new(scene));
+
     let mut window = Window::new(
         "Test - ESC to exit",
         resolution.width.get(),
@@ -47,11 +50,12 @@ fn main() {
         )
         .unwrap();
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        renderer.render(&scene);
+        renderer.render(&scene_arc);
         let fb = renderer.frame_buffer.lock().unwrap();
-        // if window.is_key_down(Key::Space) {
-        //     renderer.scene.camera.pos.y += 0.1;
-        // }
+        if window.is_key_down(Key::Space) {
+            scene_arc.write().unwrap().camera.pos.y += 5.0;
+            println!("camera pos:");
+        }
         window
             .update_with_buffer(
                 &fb.buffer(),
