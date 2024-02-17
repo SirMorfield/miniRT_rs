@@ -43,7 +43,7 @@ impl MultiThreadedRenderer {
         self.frame_buffer.lock().unwrap().reset_progress();
     }
 
-    pub fn render(&mut self, scene: &Arc<RwLock<Scene>>) {
+    pub fn render(&mut self, scene: &Arc<RwLock<Scene>>, log: bool) {
         self.reset_progress();
         let (tx, rx) = mpsc::channel();
         for _ in 0..self.num_threads {
@@ -73,10 +73,13 @@ impl MultiThreadedRenderer {
             fb.set_pixel(x, y, color);
             let progress = fb.progress();
             drop(fb);
-            self.progress_logger.log(progress);
+            if log {
+                self.progress_logger.log(progress);
+            }
         }
-        self.progress_logger.log_end();
-
+        if log {
+            self.progress_logger.log_end();
+        }
         let scene = scene.read().unwrap();
         if scene.file_type == FileType::Obj {
             self.frame_buffer.lock().unwrap().flip(Flip::Horizontal);

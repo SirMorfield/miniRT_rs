@@ -50,12 +50,16 @@ fn main() {
         )
         .unwrap();
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        renderer.render(&scene_arc);
+        renderer.render(&scene_arc, false);
         let fb = renderer.frame_buffer.lock().unwrap();
-        if window.is_key_down(Key::Space) {
-            scene_arc.write().unwrap().camera.pos.y += 5.0;
-            println!("camera pos:");
+        for key in window.get_keys_pressed(minifb::KeyRepeat::Yes) {
+            scene_arc
+                .write()
+                .unwrap()
+                .camera
+                .move_from_keyboard(key, 10.0);
         }
+
         window
             .update_with_buffer(
                 &fb.buffer(),
