@@ -21,37 +21,40 @@ mod vector;
 use crate::threading::MultiThreadedRenderer;
 use init::get_resolution;
 use init::get_scene;
+use init::get_window;
 use minifb::{Key, Window, WindowOptions};
 use std::sync::Arc;
 use std::sync::RwLock;
 
-fn main() {
-    let resolution = get_resolution();
-    resolution.print();
-    let mut renderer = MultiThreadedRenderer::new(resolution);
-    let scene = get_scene().unwrap();
-    scene.print_stats();
-    let scene_arc = Arc::new(RwLock::new(scene));
-
-    let mut window = Window::new(
-        "Test - ESC to exit",
-        resolution.width.get(),
-        resolution.height.get(),
-        WindowOptions::default(),
-    )
-    .unwrap();
-    window
-        .update_with_buffer(
-            &vec![0; resolution.width.get() * resolution.height.get()],
-            resolution.width.get(),
-            resolution.height.get(),
-        )
-        .unwrap();
+fn loop_until_closed(
+    window: &mut Window,
+    renderer: &mut MultiThreadedRenderer,
+    scene: Arc<RwLock<scene_readers::Scene>>,
+    res: resolution::Resolution,
+) {
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        renderer.render(&scene_arc, false);
+        renderer.render(&scene, false);
         let fb = renderer.frame_buffer.lock().unwrap();
         for key in window.get_keys() {
-            scene_arc.write().unwrap().camera.keyboard(key);
+            scene.write().unwrap().camera.keyboard(key);
+        }
+        window
+            .update_with_buffer(&fb.buffer(), res.width.get(), res.height.get())
+            .unwrap();
+    }
+}
+
+fn main() {
+    let resolution = get_resolution();
+    let mut renderer = MultiThreadedRenderer::new(resolution);
+    let scene = Arc::new(RwLock::new(get_scene().unwrap()));
+    let mut window = get_window(&resolution);
+
+    while window.is_open() && !window.is_key_down(Key::Escape) {
+        renderer.render(&scene, false);
+        let fb = renderer.frame_buffer.lock().unwrap();
+        for key in window.get_keys() {
+            scene.write().unwrap().camera.keyboard(key);
         }
 
         window

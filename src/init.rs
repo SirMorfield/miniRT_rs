@@ -1,16 +1,17 @@
+use crate::{
+    resolution::{AALevel, Resolution},
+    scene_readers::{read_scene, Scene},
+};
 use std::{
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
 
-use crate::{
-    resolution::{AALevel, Resolution},
-    scene_readers::{read_scene, Scene},
-};
-
 pub fn get_scene() -> Result<Scene, String> {
     let path = get_render_file().unwrap();
-    read_scene(&path)
+    let scene = read_scene(&path).unwrap();
+    scene.print_stats();
+    Ok(scene)
 }
 
 pub fn get_resolution() -> Resolution {
@@ -20,6 +21,24 @@ pub fn get_resolution() -> Resolution {
         AALevel::new(1).unwrap(),
     );
     resolution
+}
+
+pub fn get_window(resolution: &Resolution) -> minifb::Window {
+    let mut window = minifb::Window::new(
+        "Test - ESC to exit",
+        resolution.width.get(),
+        resolution.height.get(),
+        minifb::WindowOptions::default(),
+    )
+    .unwrap();
+    window
+        .update_with_buffer(
+            &vec![0; resolution.width.get() * resolution.height.get()],
+            resolution.width.get(),
+            resolution.height.get(),
+        )
+        .unwrap();
+    window
 }
 
 fn get_render_file() -> Option<PathBuf> {
