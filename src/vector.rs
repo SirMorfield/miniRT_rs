@@ -158,7 +158,7 @@ where
         return v;
     }
 
-    pub fn from_Point(other: &Point<T>) -> Self
+    pub fn from_point(other: &Point<T>) -> Self
     where
         T: Clone,
     {

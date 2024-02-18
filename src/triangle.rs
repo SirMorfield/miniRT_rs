@@ -1,4 +1,4 @@
-use crate::num::{self, f32};
+use crate::num::f32;
 use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Intersect, Ray, Shape};
 use crate::vector::Point;

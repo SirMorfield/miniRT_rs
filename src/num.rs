@@ -97,6 +97,7 @@ mod tests2 {
     }
 }
 
+#[allow(dead_code)]
 pub fn minn<T>(arr: &[T]) -> T
 where
     T: PartialOrd + Copy,
@@ -111,6 +112,7 @@ where
     return min;
 }
 
+#[allow(dead_code)]
 pub fn maxn<T>(arr: &[T]) -> T
 where
     T: PartialOrd + Copy,

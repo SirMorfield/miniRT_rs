@@ -19,7 +19,7 @@ fn parse_rgb(s: &str) -> Option<Point<u8>> {
     return Some(Point::new(r, g, b));
 }
 
-fn parse_Point(s: &str, should_be_normalized: bool) -> Option<Point<f32>> {
+fn parse_point(s: &str, should_be_normalized: bool) -> Option<Point<f32>> {
     let parts: Vec<&str> = s.split(",").collect();
     if parts.len() != 3 {
         return None;
@@ -41,9 +41,9 @@ fn parse_triangle(t: Vec<&str>) -> Option<Triangle> {
     if t[0] != "tr" {
         return None;
     }
-    let v0 = parse_Point(t[1], false)?;
-    let v1 = parse_Point(t[2], false)?;
-    let v2 = parse_Point(t[3], false)?;
+    let v0 = parse_point(t[1], false)?;
+    let v1 = parse_point(t[2], false)?;
+    let v2 = parse_point(t[3], false)?;
     let color = parse_rgb(t[4])?;
 
     return Some(Triangle::new(v0, v1, v2, color));
@@ -54,7 +54,7 @@ fn parse_light(blocks: Vec<&str>) -> Option<Light> {
         return None;
     }
 
-    let origin = parse_Point(blocks.get(1)?, false)?;
+    let origin = parse_point(blocks.get(1)?, false)?;
     let intensity = blocks.get(2)?.parse::<f32>().ok()?;
     let intensity = Float0to1::new(intensity)?;
     let color = parse_rgb(blocks.get(3)?)?;
@@ -66,8 +66,8 @@ fn parse_camera(blocks: Vec<&str>) -> Option<Camera> {
     if blocks.get(0) != Some(&"c") {
         return None;
     }
-    let origin = parse_Point(blocks.get(1)?, false)?;
-    let direction = parse_Point(blocks.get(2)?, true)?;
+    let origin = parse_point(blocks.get(1)?, false)?;
+    let direction = parse_point(blocks.get(2)?, true)?;
     let fov = blocks.get(3)?.parse::<f32>().ok()?;
 
     return Some(Camera::new(origin, direction, fov));
