@@ -55,9 +55,12 @@ pub fn correct_normal(normal: Point<f32>, dir: &Point<f32>) -> Point<f32> {
     };
 }
 
+pub trait Intersect {
+    fn hit(&self, ray: &Ray) -> Option<Hit>;
+}
+
 pub trait Shape {
     fn is_inside_aabb(&self, aabb: &AABB) -> bool;
-    fn hit(&self, ray: &Ray) -> Option<Hit>;
     fn aabb(&self) -> AABB;
 }
 

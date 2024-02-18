@@ -1,5 +1,5 @@
 use crate::num::f32::{max, min};
-use crate::util::{Hit, Ray, Shape};
+use crate::util::{Hit, Intersect, Ray, Shape};
 use crate::vector::Point;
 use std::vec::Vec;
 
@@ -154,7 +154,7 @@ pub struct Octree<T> {
 
 impl<T> Octree<T>
 where
-    T: Shape,
+    T: Shape + Intersect,
 {
     pub fn new(shapes: Vec<T>) -> Self {
         let mut this = Self {

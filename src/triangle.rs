@@ -1,6 +1,6 @@
 use crate::num::{self, f32};
 use crate::octree::AABB;
-use crate::util::{correct_normal, Hit, Ray, Shape};
+use crate::util::{correct_normal, Hit, Intersect, Ray, Shape};
 use crate::vector::Point;
 
 #[derive(Debug)]
@@ -188,11 +188,13 @@ fn make_points_unique(
     return (p0.clone(), p1.clone(), p2.clone());
 }
 
-impl Shape for Triangle {
+impl Intersect for Triangle {
     fn hit(&self, ray: &Ray) -> Option<Hit> {
         return self.hit_0(ray);
     }
+}
 
+impl Shape for Triangle {
     fn is_inside_aabb(&self, aabb: &AABB) -> bool {
         return aabb.is_inside_all(&[self.p0, self.p1, self.p2]);
     }
