@@ -16,7 +16,7 @@ impl RandomIterator {
             max: max,
             offset: 0,
             actual: 0,
-            step_size: max / 2,
+            step_size: (max / 100) + 1,
             i: 0,
         }
     }
@@ -24,7 +24,6 @@ impl RandomIterator {
         self.i = 0;
         self.offset = 0;
         self.actual = 0;
-        self.step_size = self.max / 2;
     }
     pub fn i(&self) -> usize {
         self.i
@@ -79,5 +78,6 @@ mod randomiterator_test {
         test(1000);
         test(1001);
         test(1002);
+        test(10000);
     }
 }

@@ -20,6 +20,7 @@ pub fn get_resolution() -> Resolution {
         NonZeroUsize::new(700).unwrap(),
         AALevel::new(1).unwrap(),
     );
+    resolution.print();
     resolution
 }
 
