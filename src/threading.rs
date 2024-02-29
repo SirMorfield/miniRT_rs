@@ -52,29 +52,31 @@ impl MultiThreadedRenderer {
             let tx = tx.clone();
             let renderer = self.renderer.clone();
             let scene = scene.clone();
-            std::thread::spawn(move || loop {
-                let mut fb = fb.lock().unwrap();
-                const MAX_COORDINATES: usize = 10000;
-                let coordinates = fb.get_coordinates::<MAX_COORDINATES>();
-                let mut colors = [None; MAX_COORDINATES];
-                let mut end = false;
-                drop(fb); // unlock mutex as soon as possible
+            std::thread::spawn(move || {
                 let scene = scene.read().unwrap();
+                loop {
+                    let mut fb = fb.lock().unwrap();
+                    const MAX_COORDINATES: usize = 10000;
+                    let coordinates = fb.get_coordinates::<MAX_COORDINATES>();
+                    let mut colors = [None; MAX_COORDINATES];
+                    let mut end = false;
+                    drop(fb); // unlock mutex as soon as possible
 
-                // Egypt is never far
-                for (i, coordinate) in coordinates.iter().enumerate() {
-                    match coordinate {
-                        None => end = true,
-                        Some((x, y)) => {
-                            let color =
-                                renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
-                            colors[i] = Some((*x, *y, color));
+                    // Egypt is never far
+                    for (i, coordinate) in coordinates.iter().enumerate() {
+                        match coordinate {
+                            None => end = true,
+                            Some((x, y)) => {
+                                let color =
+                                    renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
+                                colors[i] = Some((*x, *y, color));
+                            }
                         }
                     }
-                }
-                tx.send(colors).unwrap();
-                if end {
-                    return;
+                    tx.send(colors).unwrap();
+                    if end {
+                        return;
+                    }
                 }
             });
         }
