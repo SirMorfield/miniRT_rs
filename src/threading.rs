@@ -59,13 +59,13 @@ impl MultiThreadedRenderer {
                 let mut colors = [None; MAX_COORDINATES];
                 let mut end = false;
                 drop(fb); // unlock mutex as soon as possible
+                let scene = scene.read().unwrap();
 
                 // Egypt is never far
                 for (i, coordinate) in coordinates.iter().enumerate() {
                     match coordinate {
                         None => end = true,
                         Some((x, y)) => {
-                            let scene = scene.read().unwrap();
                             let color =
                                 renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
                             colors[i] = Some((*x, *y, color));

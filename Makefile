@@ -1,10 +1,6 @@
-build-run-release:
-	cargo build --release --bin minirt_rs
-	./target/release/minirt_rs rt/dragon.rt
-
-build-run-debug:
-	cargo +nightly build --bin minirt_rs
-	./target/debug/minirt_rs obj/tree.obj
-
-update-dragon:
-	convert output.bmp media/dragon.png
+flames:
+	sudo cargo flamegraph --freq 1000 -- obj/teapot.obj output.bmp
+	sudo chmod o+rw output.bmp
+tea:
+	rm -rf output.bmp
+	cargo run --release -- obj/teapot.obj output.bmp
