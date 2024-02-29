@@ -55,12 +55,13 @@ impl MultiThreadedRenderer {
             std::thread::spawn(move || {
                 let scene = scene.read().unwrap();
                 loop {
-                    let mut fb = fb.lock().unwrap();
                     const MAX_COORDINATES: usize = 10000;
+                    let mut fb = fb.lock().unwrap();
                     let coordinates = fb.get_coordinates::<MAX_COORDINATES>();
+                    drop(fb); // unlock mutex as soon as possible
+
                     let mut colors = [None; MAX_COORDINATES];
                     let mut end = false;
-                    drop(fb); // unlock mutex as soon as possible
 
                     // Egypt is never far
                     for (i, coordinate) in coordinates.iter().enumerate() {
