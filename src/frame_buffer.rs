@@ -59,11 +59,23 @@ impl FrameBuffer {
             .unwrap_or(Float0to1::new(f32::EPSILON).unwrap());
     }
 
+    #[allow(dead_code)]
     pub fn get_coordinate(&mut self) -> Option<(usize, usize)> {
         match self.pixel_index.next() {
             None => None,
             Some(i) => Some(self.i_to_coord(i)),
         }
+    }
+
+    pub fn get_coordinates<const N: usize>(&mut self) -> [Option<(usize, usize)>; N] {
+        let mut result = [None; N];
+        for i in 0..N {
+            result[i] = match self.pixel_index.next() {
+                None => None,
+                Some(i) => Some(self.i_to_coord(i)),
+            };
+        }
+        result
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Point<u8>) {

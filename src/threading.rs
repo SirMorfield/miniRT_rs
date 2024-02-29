@@ -5,6 +5,7 @@ use crate::renderer;
 use crate::resolution;
 use crate::scene_readers::FileType;
 use crate::scene_readers::Scene;
+use crate::vector::Point;
 use frame_buffer::Flip;
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
@@ -53,28 +54,41 @@ impl MultiThreadedRenderer {
             let scene = scene.clone();
             std::thread::spawn(move || loop {
                 let mut fb = fb.lock().unwrap();
-                let coordinate = fb.get_coordinate();
+                const MAX_COORDINATES: usize = 10000;
+                let coordinates = fb.get_coordinates::<MAX_COORDINATES>();
+                let mut colors = [None; MAX_COORDINATES];
+                let mut end = false;
                 drop(fb); // unlock mutex as soon as possible
 
-                match coordinate {
-                    None => break,
-                    Some((x, y)) => {
-                        let scene = scene.read().unwrap();
-                        let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
-                        tx.send((x, y, color)).unwrap();
+                // Egypt is never far
+                for (i, coordinate) in coordinates.iter().enumerate() {
+                    match coordinate {
+                        None => end = true,
+                        Some((x, y)) => {
+                            let scene = scene.read().unwrap();
+                            let color =
+                                renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
+                            colors[i] = Some((*x, *y, color));
+                        }
                     }
+                }
+                tx.send(colors).unwrap();
+                if end {
+                    return;
                 }
             });
         }
         drop(tx);
 
-        for (x, y, color) in rx {
-            let mut fb = self.frame_buffer.lock().unwrap();
-            fb.set_pixel(x, y, color);
-            let progress = fb.progress();
-            drop(fb);
-            if log {
-                self.progress_logger.log(progress);
+        for colors in rx {
+            for (x, y, color) in colors.iter().filter_map(|c| *c) {
+                let mut fb = self.frame_buffer.lock().unwrap();
+                fb.set_pixel(x, y, color);
+                let progress = fb.progress();
+                drop(fb);
+                if log {
+                    self.progress_logger.log(progress);
+                }
             }
         }
         self.progress_logger.log_end();
