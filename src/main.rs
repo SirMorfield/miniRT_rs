@@ -61,7 +61,7 @@ fn main() {
     let scene = Arc::new(RwLock::new(get_scene(&argv.input_file).unwrap()));
 
     if let Some(output_file) = argv.output_file {
-        renderer.render(&scene, true);
+        renderer.render(&scene, false);
         let fb = renderer.frame_buffer.lock().unwrap();
         fb.save_as_bmp(&output_file).unwrap();
     } else {

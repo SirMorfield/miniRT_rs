@@ -77,9 +77,7 @@ impl MultiThreadedRenderer {
                 self.progress_logger.log(progress);
             }
         }
-        if log {
-            self.progress_logger.log_end();
-        }
+        self.progress_logger.log_end();
         let scene = scene.read().unwrap();
         if scene.file_type == FileType::Obj {
             self.frame_buffer.lock().unwrap().flip(Flip::Horizontal);
