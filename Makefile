@@ -4,3 +4,8 @@ flames:
 tea:
 	rm -rf output.bmp
 	cargo run --release -- obj/teapot.obj output.bmp
+
+window:
+	cargo run --release -- obj/teapot.obj
+
+.PHONY: flames tea window

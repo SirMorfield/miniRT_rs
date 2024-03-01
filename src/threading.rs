@@ -41,6 +41,7 @@ impl MultiThreadedRenderer {
 
     fn reset_progress(&mut self) {
         self.frame_buffer.lock().unwrap().reset_progress();
+        self.progress_logger.reset();
     }
 
     pub fn render(&mut self, scene: &Arc<RwLock<Scene>>, log: bool) {

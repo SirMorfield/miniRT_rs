@@ -33,6 +33,13 @@ impl ProgressLogger {
             min_time_between_logs,
         };
     }
+
+    pub fn reset(&mut self) {
+        self.start_time = Instant::now();
+        self.last_progress = Float0to1::new(0.0).unwrap();
+        self.last_log = Instant::now() - self.min_time_between_logs;
+    }
+
     pub fn log(&mut self, progress: Float0to1) {
         if (self.last_progress.get() - progress.get()).abs() < self.precision.get() {
             return;
