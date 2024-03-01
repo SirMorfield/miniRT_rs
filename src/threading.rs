@@ -55,7 +55,7 @@ impl MultiThreadedRenderer {
             std::thread::spawn(move || {
                 let scene = scene.read().unwrap();
                 loop {
-                    const MAX_COORDINATES: usize = 10000;
+                    const MAX_COORDINATES: usize = 1000;
                     let mut fb = fb.lock().unwrap();
                     let coordinates = fb.get_coordinates::<MAX_COORDINATES>();
                     drop(fb); // unlock mutex as soon as possible
