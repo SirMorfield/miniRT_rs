@@ -5,7 +5,6 @@ use crate::renderer;
 use crate::resolution;
 use crate::scene_readers::FileType;
 use crate::scene_readers::Scene;
-use crate::vector::Point;
 use frame_buffer::Flip;
 use frame_buffer::FrameBuffer;
 use num::PositiveNonzeroF32;
@@ -32,8 +31,8 @@ impl MultiThreadedRenderer {
                 .get(),
             progress_logger: ProgressLogger::new(
                 "Rendering",
-                PositiveNonzeroF32::new(0.1).unwrap(),
-                1,
+                PositiveNonzeroF32::new(0.2).unwrap(),
+                2,
             ),
             renderer: Arc::new(Renderer::new(resolution)),
             frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap())),
