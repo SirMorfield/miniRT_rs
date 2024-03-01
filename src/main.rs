@@ -34,13 +34,12 @@ fn loop_until_closed(
     scene: Arc<RwLock<scene_readers::Scene>>,
     res: resolution::Resolution,
 ) {
-    let mut pressed = true;
     while window.is_open() && !window.is_key_down(Key::Escape) {
-        for key in window.get_keys() {
+        let keys = window.get_keys();
+        for key in &keys {
             scene.write().unwrap().camera.keyboard(key);
-            pressed = true;
         }
-        if pressed {
+        if keys.len() > 0 {
             renderer.render(&scene, false);
             let fb = renderer.frame_buffer.lock().unwrap();
             window
@@ -50,7 +49,6 @@ fn loop_until_closed(
             window.update();
             std::thread::sleep(Duration::from_micros(16600));
         }
-        pressed = false;
     }
 }
 

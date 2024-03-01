@@ -63,7 +63,7 @@ impl Camera {
             Direction::YawRight => self.update_dir_pitch_yaw(0.0, -amount),
         }
     }
-    pub fn keyboard(&mut self, key: Key) {
+    pub fn keyboard(&mut self, key: &Key) {
         let move_speed = 10.0;
         let yaw_pitch_speed = 0.15;
 
