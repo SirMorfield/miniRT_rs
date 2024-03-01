@@ -26,9 +26,9 @@ pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
     let mut lights: Vec<Light> = vec![];
 
     lights.push(Light::new(
-        camera.pos + 10.0,
+        camera.pos,
         Float0to1::new(0.5).unwrap(),
-        Point::new(50, 255, 50),
+        Point::new(255, 255, 255),
     ));
     let triangles = Octree::new(triangles);
     let parse_duration = now.elapsed();
