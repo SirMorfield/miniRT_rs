@@ -7,14 +7,14 @@ use std::io;
 use std::vec::Vec;
 
 pub fn to_u32(color: Point<u8>) -> u32 {
-    (color.x as u32) | ((color.y as u32) << 8) | ((color.z as u32) << 16)
+    (color.z as u32) | ((color.x as u32) << 8) | ((color.y as u32) << 16)
 }
 
 pub fn to_u8(color: u32) -> Point<u8> {
     Point::new(
-        (color & 0xFF) as u8,
-        ((color >> 8) & 0xFF) as u8,
         ((color >> 16) & 0xFF) as u8,
+        ((color >> 8) & 0xFF) as u8,
+        (color & 0xFF) as u8,
     )
 }
 
@@ -86,7 +86,6 @@ impl FrameBuffer {
         self.buffer[i] = to_u32(color);
     }
 
-    #[allow(dead_code)]
     pub fn get_pixel(&self, x: usize, y: usize) -> Option<Point<u8>> {
         let i = x + y * self.resolution.width.get();
         if i >= self.buffer.len() {
