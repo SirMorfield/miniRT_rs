@@ -46,11 +46,13 @@ fn vertex_normals_loaded(mesh: &tobj::Mesh) -> bool {
     mesh.normals.len() != 0 && mesh.normal_indices.len() != 0
 }
 
-fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
+fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<(), String> {
     let vertices = &mesh.positions;
     let vertices_i = &mesh.indices;
     let normals = &mesh.normals;
     let normals_i = &mesh.normal_indices;
+    let texture_coords = &mesh.texcoords;
+    let texture_coords_i = &mesh.texcoord_indices;
 
     if vertices_i.len() % 3 != 0 {
         return Err("Indices must be a multiple of 3".into());
@@ -66,14 +68,23 @@ fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
             return Err("Normal is not finite".into());
         }
     }
+    if texture_coords_i.len() != 0 && texture.is_none() {
+        return Err("Texture coordinates found but no texture".into());
+    }
+    if texture_coords_i.len() != 0 && texture_coords_i.len() != vertices_i.len() {
+        return Err("Indices and texture coordinates must be the same length".into());
+    }
+    if texture_coords.iter().find(|n| !n.is_finite()).is_some() {
+        return Err("Texture coordinate is not finite".into());
+    }
     Ok(())
 }
 
-///  either the points of a triangle or the vertex normals of one
-fn load_tri_vector(points: &Vec<f32>, idx: &Vec<u32>, i: usize) -> (Point<f32>, Point<f32>, Point<f32>) {
-    let p0 = idx[i + 0] as usize * 3;
-    let p1 = idx[i + 1] as usize * 3;
-    let p2 = idx[i + 2] as usize * 3;
+// either the points of a triangle or the vertex normals of one
+fn load_tri_vector(points: &Vec<f32>, indices: &Vec<u32>, i: usize) -> (Point<f32>, Point<f32>, Point<f32>) {
+    let p0 = indices[i + 0] as usize * 3;
+    let p1 = indices[i + 1] as usize * 3;
+    let p2 = indices[i + 2] as usize * 3;
     let p0 = Point::new(points[p0], points[p0 + 1], points[p0 + 2]);
     let p1 = Point::new(points[p1], points[p1 + 1], points[p1 + 2]);
     let p2 = Point::new(points[p2], points[p2 + 1], points[p2 + 2]);
@@ -90,7 +101,7 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
         let normals_i = &m.mesh.normal_indices;
         let mut failed: usize = 0;
 
-        validate_mesh(&m.mesh)?;
+        validate_mesh(&m.mesh, texture)?;
 
         if !vertex_normals_loaded(&m.mesh) {
             println!("No vertex normals found. Using geometric normals instead.");
