@@ -93,7 +93,8 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
     // println!("size  : {:?}", size);
     // println!("avg   : {:?}", avg);
     // println!("origin: {:?}", origin);
-    return Camera::new(origin, dir, 80.0);
+
+    return Camera::new(origin, dir, 80.0, size / 5.0, 0.1);
 }
 
 pub fn default_ambient() -> Light {

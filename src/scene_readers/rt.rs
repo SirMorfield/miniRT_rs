@@ -70,7 +70,7 @@ fn parse_camera(blocks: Vec<&str>) -> Option<Camera> {
     let direction = parse_point(blocks.get(2)?, true)?;
     let fov = blocks.get(3)?.parse::<f32>().ok()?;
 
-    return Some(Camera::new(origin, direction, fov));
+    return Some(Camera::new(origin, direction, fov, 10.0, 0.15));
 }
 
 fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
@@ -101,7 +101,13 @@ pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
         Point::homogeneous(0),
     );
     let mut lights: Vec<Light> = Vec::new();
-    let mut camera = Camera::new(Point::new(35.0, 18.0, 31.0), Point::new(-0.7247, -0.18, -0.78087), 70.0);
+    let mut camera = Camera::new(
+        Point::new(35.0, 18.0, 31.0),
+        Point::new(-0.7247, -0.18, -0.78087),
+        70.0,
+        10.0,
+        0.15,
+    );
 
     for line in lines {
         let line = line.map_err(|_| "Could not read line".to_string())?;
