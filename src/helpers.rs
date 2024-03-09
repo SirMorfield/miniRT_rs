@@ -45,42 +45,22 @@ impl AsFormattedString for std::time::Duration {
 
         if precision >= Precision::Seconds {
             result.push_str(" ");
-            result.push_str(
-                &seconds
-                    .as_secs()
-                    .to_string()
-                    .pad(2, '0', Alignment::Right, true),
-            );
+            result.push_str(&seconds.as_secs().to_string().pad(2, '0', Alignment::Right, true));
         }
 
         if precision >= Precision::Milliseconds {
             result.push_str(".");
-            result.push_str(
-                &self
-                    .subsec_millis()
-                    .to_string()
-                    .pad(3, '0', Alignment::Right, true),
-            );
+            result.push_str(&self.subsec_millis().to_string().pad(3, '0', Alignment::Right, true));
         }
 
         if precision >= Precision::Microseconds {
             result.push_str(" ");
-            result.push_str(
-                &self
-                    .subsec_micros()
-                    .to_string()
-                    .pad(3, '0', Alignment::Right, true),
-            );
+            result.push_str(&self.subsec_micros().to_string().pad(3, '0', Alignment::Right, true));
         }
 
         if precision >= Precision::Nanoseconds {
             result.push_str(" ");
-            result.push_str(
-                &self
-                    .subsec_nanos()
-                    .to_string()
-                    .pad(3, '0', Alignment::Right, true),
-            );
+            result.push_str(&self.subsec_nanos().to_string().pad(3, '0', Alignment::Right, true));
         }
 
         if precision >= Precision::Seconds {

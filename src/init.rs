@@ -52,10 +52,7 @@ impl Argv {
     pub fn new() -> Result<Self, String> {
         let argv = std::env::args().collect::<Vec<_>>();
         if argv.len() <= 1 {
-            return Err(format!(
-                "Usage: {} <scene.[rt,obj,blend]>",
-                argv.get(0).unwrap()
-            ));
+            return Err(format!("Usage: {} <scene.[rt,obj,blend]>", argv.get(0).unwrap()));
         }
         let input_file = argv.get(1).map(|s| PathBuf::from(s)).unwrap();
         let output_file = argv.get(2).map(|s| PathBuf::from(s));

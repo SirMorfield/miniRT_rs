@@ -129,11 +129,7 @@ where
     where
         T: Clone,
     {
-        Point {
-            x: xyz,
-            y: xyz,
-            z: xyz,
-        }
+        Point { x: xyz, y: xyz, z: xyz }
     }
 
     pub fn unit(x: T, y: T, z: T) -> Option<Self>
@@ -248,11 +244,7 @@ where
         T: Mul<Output = T>,
         T: Clone,
     {
-        return Point::new(
-            self.x + other.x * t,
-            self.y + other.y * t,
-            self.z + other.z * t,
-        );
+        return Point::new(self.x + other.x * t, self.y + other.y * t, self.z + other.z * t);
     }
 
     pub fn distance2(&self, other: &Point<T>) -> T
@@ -294,15 +286,9 @@ where
         T: std::cmp::PartialOrd,
     {
         return Point::new(
-            std::cmp::min_by(self.x, other.x, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
-            std::cmp::min_by(self.y, other.y, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
-            std::cmp::min_by(self.z, other.z, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
+            std::cmp::min_by(self.x, other.x, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
+            std::cmp::min_by(self.y, other.y, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
+            std::cmp::min_by(self.z, other.z, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
         );
     }
 
@@ -322,15 +308,9 @@ where
         T: std::cmp::PartialOrd,
     {
         return Point::new(
-            std::cmp::max_by(self.x, other.x, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
-            std::cmp::max_by(self.y, other.y, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
-            std::cmp::max_by(self.z, other.z, |a, b| {
-                a.partial_cmp(&b).unwrap_or(Ordering::Greater)
-            }),
+            std::cmp::max_by(self.x, other.x, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
+            std::cmp::max_by(self.y, other.y, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
+            std::cmp::max_by(self.z, other.z, |a, b| a.partial_cmp(&b).unwrap_or(Ordering::Greater)),
         );
     }
 

@@ -142,21 +142,9 @@ impl Triangle {
         let (u, v) = self.barycentric_coordinates(point);
 
         // Interpolate normals at vertices
-        let n0 = if self.vertex_normals {
-            self.n0
-        } else {
-            self.p0
-        };
-        let n1 = if self.vertex_normals {
-            self.n1
-        } else {
-            self.p1
-        };
-        let n2 = if self.vertex_normals {
-            self.n2
-        } else {
-            self.p2
-        };
+        let n0 = if self.vertex_normals { self.n0 } else { self.p0 };
+        let n1 = if self.vertex_normals { self.n1 } else { self.p1 };
+        let n2 = if self.vertex_normals { self.n2 } else { self.p2 };
 
         // Barycentric interpolation of normals
         let normal = n0 * (1.0 - u - v) + n1 * u + n2 * v;

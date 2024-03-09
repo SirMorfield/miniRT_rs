@@ -96,10 +96,7 @@ impl FrameBuffer {
     }
 
     fn i_to_coord(&self, i: usize) -> (usize, usize) {
-        (
-            i % self.resolution.width.get(),
-            i / self.resolution.width.get(),
-        )
+        (i % self.resolution.width.get(), i / self.resolution.width.get())
     }
     fn coord_to_i(&self, x: usize, y: usize) -> usize {
         y * self.resolution.width.get() + x
@@ -133,10 +130,7 @@ impl FrameBuffer {
 
     #[allow(dead_code)]
     pub fn save_as_bmp(&self, path: &std::path::Path) -> io::Result<()> {
-        let mut img = Image::new(
-            self.resolution.width.get() as u32,
-            self.resolution.height.get() as u32,
-        );
+        let mut img = Image::new(self.resolution.width.get() as u32, self.resolution.height.get() as u32);
 
         for x in 0..self.resolution.width.get() {
             for y in 0..self.resolution.height.get() {

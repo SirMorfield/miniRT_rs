@@ -29,10 +29,6 @@ impl Light {
         return intensity.min(1.0);
     }
     pub fn as_float(&self) -> Point<f32> {
-        return Point::new(
-            self.color.x as f32,
-            self.color.y as f32,
-            self.color.z as f32,
-        );
+        return Point::new(self.color.x as f32, self.color.y as f32, self.color.z as f32);
     }
 }

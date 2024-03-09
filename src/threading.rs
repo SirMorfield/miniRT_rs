@@ -29,11 +29,7 @@ impl MultiThreadedRenderer {
             num_threads: std::thread::available_parallelism()
                 .unwrap_or(NonZeroUsize::new(8).unwrap())
                 .get(),
-            progress_logger: ProgressLogger::new(
-                "Rendering",
-                PositiveNonzeroF32::new(0.2).unwrap(),
-                2,
-            ),
+            progress_logger: ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.2).unwrap(), 2),
             renderer: Arc::new(Renderer::new(resolution)),
             frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap())),
         }
@@ -68,8 +64,7 @@ impl MultiThreadedRenderer {
                         match coordinate {
                             None => end = true,
                             Some((x, y)) => {
-                                let color =
-                                    renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
+                                let color = renderer.render(&scene, &scene.camera, *x as f32, *y as f32);
                                 colors[i] = Some((*x, *y, color));
                             }
                         }

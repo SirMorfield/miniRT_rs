@@ -119,10 +119,7 @@ mod aabb_test {
     }
     #[test]
     fn infinity() {
-        let aabb = AABB::new(
-            Point::homogeneous(-f32::INFINITY),
-            Point::homogeneous(f32::INFINITY),
-        );
+        let aabb = AABB::new(Point::homogeneous(-f32::INFINITY), Point::homogeneous(f32::INFINITY));
         assert_eq!(aabb.is_inside(&Point::new(0.0, 0.0, 0.0)), true);
         assert_eq!(aabb.is_inside(&Point::homogeneous(f32::MAX)), true);
         assert_eq!(aabb.is_inside(&Point::homogeneous(f32::MIN)), true);
@@ -223,22 +220,14 @@ where
     pub fn print(&self, summary: bool, sort: bool, max_depth: usize) {
         self.print_depth(0, self.shapes_count(), summary, sort, max_depth);
     }
-    fn print_depth(
-        &self,
-        depth: usize,
-        top_level_shapes: usize,
-        sort: bool,
-        summary: bool,
-        max_depth: usize,
-    ) {
+    fn print_depth(&self, depth: usize, top_level_shapes: usize, sort: bool, summary: bool, max_depth: usize) {
         if depth > max_depth {
             return;
         }
         let indent = " ".repeat(depth * 4);
 
         let shapes = self.shapes_count();
-        let relative =
-            "#".repeat(((shapes as f32 / top_level_shapes as f32) * 100 as f32) as usize);
+        let relative = "#".repeat(((shapes as f32 / top_level_shapes as f32) * 100 as f32) as usize);
         if shapes != 0 && (!summary || relative.len() > 1) {
             println!(
                 "{indent} (depth: {depth} total: {shapes} own: {}) {relative}",
@@ -257,13 +246,10 @@ where
             scores.sort_by(|(_, a), (_, b)| b.cmp(a));
         }
         for (i, _) in scores {
-            self.children.get(i).unwrap().print_depth(
-                depth + 1,
-                top_level_shapes,
-                sort,
-                summary,
-                max_depth,
-            );
+            self.children
+                .get(i)
+                .unwrap()
+                .print_depth(depth + 1, top_level_shapes, sort, summary, max_depth);
         }
     }
 
@@ -312,7 +298,10 @@ where
         }
         let percentage = (inserted as f32 / shapes_count as f32) * 100.0;
         if percentage < 90.0 {
-            print!( "WARNING: Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)\n", self.shapes.len());
+            print!(
+                "WARNING: Inserted {inserted} out of {shapes_count} shapes, with {} remaining ({percentage}%)\n",
+                self.shapes.len()
+            );
         }
     }
 

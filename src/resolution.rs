@@ -50,9 +50,6 @@ impl Resolution {
         println!("  height   : {}", self.height.get());
         println!("  aa       : {}", self.aa.get());
         println!("  pixels   : {}", self.width.get() * self.height.get());
-        println!(
-            "  subpixels: {}",
-            self.width.get() * self.height.get() * self.aa.get()
-        );
+        println!("  subpixels: {}", self.width.get() * self.height.get() * self.aa.get());
     }
 }

@@ -83,11 +83,7 @@ fn parse_ambient(blocks: Vec<&str>) -> Option<Light> {
     let intensity = blocks.get(1)?.parse::<f32>().ok()?;
     let color = parse_rgb(blocks.get(2)?)?;
 
-    return Some(Light::new(
-        Point::homogeneous(0.0),
-        Float0to1::new(intensity)?,
-        color,
-    ));
+    return Some(Light::new(Point::homogeneous(0.0), Float0to1::new(intensity)?, color));
 }
 
 pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
@@ -105,11 +101,7 @@ pub fn read_rt(path: &std::path::Path) -> Result<super::Scene, String> {
         Point::homogeneous(0),
     );
     let mut lights: Vec<Light> = Vec::new();
-    let mut camera = Camera::new(
-        Point::new(35.0, 18.0, 31.0),
-        Point::new(-0.7247, -0.18, -0.78087),
-        70.0,
-    );
+    let mut camera = Camera::new(Point::new(35.0, 18.0, 31.0), Point::new(-0.7247, -0.18, -0.78087), 70.0);
 
     for line in lines {
         let line = line.map_err(|_| "Could not read line".to_string())?;

@@ -17,9 +17,7 @@ impl Renderer {
 
     /// TOOD: this is completely broken when the fov changes
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
-        let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0)
-            * self.resolution.aspect_ratio
-            * camera.fow_tan;
+        let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0) * self.resolution.aspect_ratio * camera.fow_tan;
         let py = (2.0 * y / (self.resolution.height.get() as f32) - 1.0) * camera.fow_tan;
 
         let positive_x: Point<f32> = if camera.dir.x == 0.0 && camera.dir.z == 0.0 {
@@ -80,11 +78,7 @@ impl Renderer {
         final_color.y /= colors.len() as u64;
         final_color.z /= colors.len() as u64;
 
-        let final_color = Point::new(
-            final_color.x as u8,
-            final_color.y as u8,
-            final_color.z as u8,
-        );
+        let final_color = Point::new(final_color.x as u8, final_color.y as u8, final_color.z as u8);
         return final_color;
     }
 

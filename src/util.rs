@@ -20,13 +20,7 @@ pub struct Hit {
     pub color: Point<u8>,
 }
 impl Hit {
-    pub fn new(
-        dist: f32,
-        origin: Point<f32>,
-        point: Point<f32>,
-        normal: Point<f32>,
-        color: Point<u8>,
-    ) -> Self {
+    pub fn new(dist: f32, origin: Point<f32>, point: Point<f32>, normal: Point<f32>, color: Point<u8>) -> Self {
         Self {
             dist,
             origin,

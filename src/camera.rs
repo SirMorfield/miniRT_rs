@@ -36,12 +36,7 @@ impl Camera {
         let pitch = f32::asin(self.dir.y) + pitch_delta;
         let yaw = f32::atan2(self.dir.x, self.dir.z) + yaw_delta;
 
-        self.dir = Point::new(
-            yaw.sin() * pitch.cos(),
-            pitch.sin(),
-            yaw.cos() * pitch.cos(),
-        )
-        .to_normalized();
+        self.dir = Point::new(yaw.sin() * pitch.cos(), pitch.sin(), yaw.cos() * pitch.cos()).to_normalized();
     }
 
     pub fn update_right_left(&mut self, delta: f32) {

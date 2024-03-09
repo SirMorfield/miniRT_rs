@@ -70,11 +70,7 @@ fn validate_mesh(mesh: &tobj::Mesh) -> Result<(), String> {
 }
 
 ///  either the points of a triangle or the vertex normals of one
-fn load_tri_vector(
-    points: &Vec<f32>,
-    idx: &Vec<u32>,
-    i: usize,
-) -> (Point<f32>, Point<f32>, Point<f32>) {
+fn load_tri_vector(points: &Vec<f32>, idx: &Vec<u32>, i: usize) -> (Point<f32>, Point<f32>, Point<f32>) {
     let p0 = idx[i + 0] as usize * 3;
     let p1 = idx[i + 1] as usize * 3;
     let p2 = idx[i + 2] as usize * 3;
