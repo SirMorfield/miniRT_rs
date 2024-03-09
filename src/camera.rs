@@ -32,7 +32,7 @@ impl Camera {
         }
     }
 
-    pub fn update_dir_pitch_yaw(&mut self, pitch_delta: f32, yaw_delta: f32) {
+    pub fn update_pitch_yaw(&mut self, pitch_delta: f32, yaw_delta: f32) {
         let pitch = f32::asin(self.dir.y) + pitch_delta;
         let yaw = f32::atan2(self.dir.x, self.dir.z) + yaw_delta;
 
@@ -52,10 +52,10 @@ impl Camera {
             Direction::Right => self.update_right_left(-amount),
             Direction::Forward => self.pos += self.dir * amount,
             Direction::Backward => self.pos -= self.dir * amount,
-            Direction::PitchUp => self.update_dir_pitch_yaw(amount, 0.0),
-            Direction::PitchDown => self.update_dir_pitch_yaw(-amount, 0.0),
-            Direction::YawLeft => self.update_dir_pitch_yaw(0.0, amount),
-            Direction::YawRight => self.update_dir_pitch_yaw(0.0, -amount),
+            Direction::PitchUp => self.update_pitch_yaw(amount, 0.0),
+            Direction::PitchDown => self.update_pitch_yaw(-amount, 0.0),
+            Direction::YawLeft => self.update_pitch_yaw(0.0, amount),
+            Direction::YawRight => self.update_pitch_yaw(0.0, -amount),
         }
     }
     pub fn keyboard(&mut self, key: &Key) {
