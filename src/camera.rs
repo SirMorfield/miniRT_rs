@@ -20,15 +20,20 @@ pub struct Camera {
     pub dir: Point<f32>,
     pub fov: f32,
     pub fow_tan: f32,
+    move_speed: f32,
+    yaw_pitch_speed: f32,
 }
 
 impl Camera {
-    pub fn new(pos: Point<f32>, dir: Point<f32>, fov: f32) -> Self {
+    pub fn new(pos: Point<f32>, dir: Point<f32>, fov: f32, move_speed: f32, yaw_pitch_speed: f32) -> Self {
+        // let pos = Point {
         Self {
             pos,
             dir: dir.to_normalized(),
             fov,
             fow_tan: (fov * 0.5).tan(),
+            move_speed,
+            yaw_pitch_speed,
         }
     }
 
@@ -59,20 +64,17 @@ impl Camera {
         }
     }
     pub fn keyboard(&mut self, key: &Key) {
-        let move_speed = 10.0;
-        let yaw_pitch_speed = 0.15;
-
         match key {
-            Key::W => self.move_to(Direction::Up, move_speed),
-            Key::S => self.move_to(Direction::Down, move_speed),
-            Key::A => self.move_to(Direction::Left, move_speed),
-            Key::D => self.move_to(Direction::Right, move_speed),
-            Key::F => self.move_to(Direction::Forward, move_speed),
-            Key::B => self.move_to(Direction::Backward, move_speed),
-            Key::Up => self.move_to(Direction::PitchUp, yaw_pitch_speed),
-            Key::Down => self.move_to(Direction::PitchDown, yaw_pitch_speed),
-            Key::Left => self.move_to(Direction::YawLeft, yaw_pitch_speed),
-            Key::Right => self.move_to(Direction::YawRight, yaw_pitch_speed),
+            Key::W => self.move_to(Direction::Up, self.move_speed),
+            Key::S => self.move_to(Direction::Down, self.move_speed),
+            Key::A => self.move_to(Direction::Left, self.move_speed),
+            Key::D => self.move_to(Direction::Right, self.move_speed),
+            Key::F => self.move_to(Direction::Forward, self.move_speed),
+            Key::B => self.move_to(Direction::Backward, self.move_speed),
+            Key::Up => self.move_to(Direction::PitchUp, self.yaw_pitch_speed),
+            Key::Down => self.move_to(Direction::PitchDown, self.yaw_pitch_speed),
+            Key::Left => self.move_to(Direction::YawLeft, self.yaw_pitch_speed),
+            Key::Right => self.move_to(Direction::YawRight, self.yaw_pitch_speed),
 
             Key::P => println!("pos: {:?}\ndir: {:?}", self.pos, self.dir),
             _ => {}
