@@ -37,8 +37,7 @@ fn loop_until_closed(
     let mut pressed = true;
     while window.is_open() && !window.is_key_down(Key::Escape) {
         for key in window.get_keys() {
-            scene.write().unwrap().camera.keyboard(&key);
-            pressed = true;
+            pressed = scene.write().unwrap().camera.keyboard(&key) || pressed;
         }
         if pressed {
             renderer.render(&scene, false);

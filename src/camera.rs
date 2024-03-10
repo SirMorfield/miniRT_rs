@@ -63,7 +63,10 @@ impl Camera {
             Direction::YawRight => self.update_pitch_yaw(0.0, -amount),
         }
     }
-    pub fn keyboard(&mut self, key: &Key) {
+
+    // returns true if the camera was moved
+    pub fn keyboard(&mut self, key: &Key) -> bool {
+        let mut moved = true;
         match key {
             Key::W => self.move_to(Direction::Up, self.move_speed),
             Key::S => self.move_to(Direction::Down, self.move_speed),
@@ -77,7 +80,8 @@ impl Camera {
             Key::Right => self.move_to(Direction::YawRight, self.yaw_pitch_speed),
 
             Key::P => println!("pos: {:?}\ndir: {:?}", self.pos, self.dir),
-            _ => {}
+            _ => moved = false,
         }
+        return moved;
     }
 }
