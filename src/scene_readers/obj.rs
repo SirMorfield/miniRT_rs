@@ -52,10 +52,6 @@ pub fn read_obj(path: &Path) -> Result<Scene, String> {
     ));
 }
 
-fn vertex_normals_loaded(mesh: &tobj::Mesh) -> bool {
-    mesh.normals.len() != 0 && mesh.normal_indices.len() != 0
-}
-
 fn get_texture(obj_path: &Path) -> Option<(PathBuf, DynamicImage)> {
     let mtl_path = obj_path.with_extension("mtl");
     let mtl = tobj::load_mtl(mtl_path);
@@ -79,27 +75,39 @@ fn get_texture(obj_path: &Path) -> Option<(PathBuf, DynamicImage)> {
     }
 }
 
-fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<(), String> {
+struct MeshInfo {
+    pub has_vertex_normals: bool,
+    pub has_texture_coords: bool,
+}
+
+fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<MeshInfo, String> {
     let vertices = &mesh.positions;
     let vertices_i = &mesh.indices;
     let normals = &mesh.normals;
     let normals_i = &mesh.normal_indices;
     let texture_coords = &mesh.texcoords;
     let texture_coords_i = &mesh.texcoord_indices;
-
+    let mut info = MeshInfo {
+        has_vertex_normals: false,
+        has_texture_coords: false,
+    };
     if vertices_i.len() % 3 != 0 {
         return Err("Indices must be a multiple of 3".into());
     }
     if vertices.iter().find(|n| !n.is_finite()).is_some() {
         return Err("Vertex is not finite".into());
     }
-    if vertex_normals_loaded(mesh) {
+    if mesh.normals.len() != 0 && mesh.normal_indices.len() != 0 {
+        info.has_vertex_normals = true;
         if vertices_i.len() != normals_i.len() {
             return Err("Indices and normals must be the same length".into());
         }
         if normals.iter().find(|n| !n.is_finite()).is_some() {
             return Err("Normal is not finite".into());
         }
+    }
+    if texture_coords_i.len() != 0 {
+        info.has_texture_coords = true;
     }
     if texture_coords_i.len() != 0 && texture.is_none() {
         return Err("Texture coordinates found but no texture".into());
@@ -110,7 +118,7 @@ fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<()
     if texture_coords.iter().find(|n| !n.is_finite()).is_some() {
         return Err("Texture coordinate is not finite".into());
     }
-    Ok(())
+    Ok(info)
 }
 
 // either the points of a triangle or the vertex normals of one
@@ -124,14 +132,18 @@ fn load_tri_vector(points: &Vec<f32>, indices: &Vec<u32>, i: usize) -> (Point<f3
     (p0, p1, p2)
 }
 
-fn get_texture_coordinate(model: &tobj::Model, vertex_index: usize) -> Option<(f32, f32)> {
+fn get_texture_coordinate(model: &tobj::Model, vertex_i: usize, texture_w: u32, texture_h: u32) -> Option<(u32, u32)> {
     let texture_coords = &model.mesh.texcoords;
     let texture_coords_i = &model.mesh.texcoord_indices;
-    let i = texture_coords_i[vertex_index] as usize;
+    let i = texture_coords_i[vertex_i] as usize;
     if i * 2 + 1 >= texture_coords.len() {
         return None;
     }
-    Some((texture_coords[i * 2], texture_coords[i * 2 + 1]))
+    let u = texture_coords[i * 2];
+    let v = texture_coords[i * 2 + 1];
+    let x = (u * texture_w as f32) as u32;
+    let y = ((1.0 - v) * texture_h as f32) as u32;
+    Some((x, y))
 }
 
 fn parse_triangle(models: Vec<tobj::Model>, texture: &Option<DynamicImage>) -> Result<Vec<Triangle>, String> {
@@ -142,11 +154,10 @@ fn parse_triangle(models: Vec<tobj::Model>, texture: &Option<DynamicImage>) -> R
         let vertices_i = &m.mesh.indices;
         let normals = &m.mesh.normals;
         let normals_i = &m.mesh.normal_indices;
+        let info = validate_mesh(&m.mesh, texture)?;
         let mut failed: usize = 0;
 
-        validate_mesh(&m.mesh, texture)?;
-
-        if !vertex_normals_loaded(&m.mesh) {
+        if !info.has_vertex_normals {
             println!("No vertex normals found. Using geometric normals instead.");
         }
 
@@ -157,17 +168,16 @@ fn parse_triangle(models: Vec<tobj::Model>, texture: &Option<DynamicImage>) -> R
                 continue;
             }
             // TODO, average the texture coordinates, not just use the first one
-            let color = match get_texture_coordinate(&m, i) {
-                Some((u, v)) => {
+            let color = match info.has_texture_coords {
+                true => {
                     let (w, h) = texture.as_ref().unwrap().dimensions();
-                    let x = (u * w as f32) as u32;
-                    let y = ((1.0 - v) * (h - 1) as f32) as u32;
+                    let (x, y) = get_texture_coordinate(&m, i, w, h).unwrap();
                     let color = texture.as_ref().unwrap().get_pixel(x, y).to_rgb();
                     Point::new(color[0], color[1], color[2])
                 }
-                None => Point::new(255, 0, 0),
+                false => Point::new(255, 0, 0),
             };
-            let triangle = match vertex_normals_loaded(&m.mesh) {
+            let triangle = match info.has_vertex_normals {
                 true => {
                     let (n0, n1, n2) = load_tri_vector(normals, normals_i, i);
                     triangle::Triangle::with_vertex_normals(p0, p1, p2, n0, n1, n2, color)
