@@ -19,3 +19,4 @@ output.bmp
 .DS_Store
 
 examples
+scene.cbor

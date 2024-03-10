@@ -2,19 +2,22 @@ use crate::num::Float0to1;
 use crate::octree::Octree;
 use crate::triangle::Triangle;
 use crate::{camera::Camera, light::Light, vector::Point};
-// use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Serialize};
+use std::fs::File;
+use std::path::Path;
 use std::time::Duration;
 
+mod cbor;
 mod obj;
 mod rt;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Serialize, Deserialize)]
 pub enum FileType {
     Rt,
     Obj,
 }
 
-// #[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct Scene {
     pub camera: Camera, // TODO: should be plural
     pub triangles: Octree<Triangle>,
@@ -43,6 +46,15 @@ impl Scene {
         }
     }
 
+    pub fn save_to_file(&self, path: &Path) -> Result<(), String> {
+        if path.extension().unwrap() != "cbor" {
+            return Err("File extension must be .cbor".to_string());
+        }
+        let ferris_file = File::create(path).map_err(|e| e.to_string())?;
+        serde_cbor::to_writer(ferris_file, &self).map_err(|e| e.to_string())?;
+        Ok(())
+    }
+
     pub fn void(&self) -> Point<u8> {
         Point::homogeneous(0)
     }
@@ -56,16 +68,13 @@ impl Scene {
     }
 }
 
-pub fn read_scene(path: &std::path::Path) -> Result<Scene, String> {
-    let display = path.display().to_string();
-
-    if display.ends_with(".rt") {
-        return rt::read_rt(&path);
-    }
-    if display.ends_with(".obj") {
-        return obj::read_obj(&path);
-    }
-    return Err("Could not read file: ".to_string() + &display);
+pub fn read_scene(path: &Path) -> Result<Scene, String> {
+    return match path.extension().unwrap().to_str().unwrap() {
+        "rt" => rt::read_rt(&path),
+        "obj" => obj::read_obj(&path),
+        "cbor" => cbor::read_cbor(&path),
+        _ => Err("Unknown file type".to_string()),
+    };
 }
 
 pub fn look_at(triangles: &Vec<Triangle>) -> Camera {

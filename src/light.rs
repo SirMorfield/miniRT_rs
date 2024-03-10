@@ -1,6 +1,9 @@
+use serde::{Deserialize, Serialize};
+
 use crate::num::Float0to1;
 use crate::vector::Point;
 
+#[derive(Serialize, Deserialize)]
 pub struct Light {
     pub origin: Point<f32>,
     intensity: f32,

@@ -1,5 +1,6 @@
 use crate::vector::Point;
 use minifb::Key;
+use serde::{Deserialize, Serialize};
 pub enum Direction {
     Up,
     Down,
@@ -15,6 +16,7 @@ pub enum Direction {
     YawRight,
 }
 
+#[derive(Serialize, Deserialize)]
 pub struct Camera {
     pub pos: Point<f32>,
     pub dir: Point<f32>,

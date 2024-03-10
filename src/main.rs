@@ -1,6 +1,5 @@
 extern crate bmp;
 extern crate num_integer;
-use serde;
 
 mod camera;
 mod frame_buffer;
@@ -25,6 +24,7 @@ use init::get_scene;
 use init::get_window;
 use init::Argv;
 use minifb::{Key, Window};
+use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::time::Duration;
@@ -38,7 +38,13 @@ fn loop_until_closed(
     let mut pressed = true;
     while window.is_open() && !window.is_key_down(Key::Escape) {
         for key in window.get_keys() {
-            pressed = scene.write().unwrap().camera.keyboard(&key) || pressed;
+            pressed = pressed || scene.write().unwrap().camera.keyboard(&key);
+            if key == Key::E {
+                pressed = true;
+                let path = PathBuf::from("scene.cbor");
+                scene.read().unwrap().save_to_file(&path).unwrap();
+                println!("Scene saved to {:?}", path);
+            }
         }
         if pressed {
             renderer.render(&scene, false);

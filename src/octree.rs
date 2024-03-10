@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 use crate::num::f32::{max, min};
 use crate::util::{Hit, Intersect, Ray, Shape};
 use crate::vector::Point;
 use std::vec::Vec;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct AABB {
     min: Point<f32>,
     max: Point<f32>,
@@ -143,6 +145,7 @@ const MAX_SHAPES_PER_OCTREE: usize = 10;
 /// assert_eq!(octree.shapes_count(), 1);
 ///```
 
+#[derive(Serialize, Deserialize)]
 pub struct Octree<T> {
     aabb: AABB,
     children: Vec<Octree<T>>,

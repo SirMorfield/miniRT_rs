@@ -4,8 +4,9 @@ use std::{
 };
 
 use num_traits::{float::FloatCore, Float};
+use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct Point<T> {
     pub x: T,
     pub y: T,

@@ -1,9 +1,11 @@
+use serde::{Deserialize, Serialize};
+
 use crate::num::f32;
 use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Intersect, Ray, Shape};
 use crate::vector::Point;
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Triangle {
     pub p0: Point<f32>,
     pub p1: Point<f32>,
