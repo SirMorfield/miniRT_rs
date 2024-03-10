@@ -2,6 +2,8 @@ use crate::num::Float0to1;
 use crate::octree::Octree;
 use crate::triangle::Triangle;
 use crate::{camera::Camera, light::Light, vector::Point};
+// use serde::{Deserialize, Serialize};
+use std::time::Duration;
 
 mod obj;
 mod rt;
@@ -12,12 +14,13 @@ pub enum FileType {
     Obj,
 }
 
+// #[derive(Serialize, Deserialize)]
 pub struct Scene {
     pub camera: Camera, // TODO: should be plural
     pub triangles: Octree<Triangle>,
     pub lights: Vec<Light>,
     pub ambient: Light,
-    pub load_duration: std::time::Duration,
+    pub load_duration: Duration,
     pub file_type: FileType,
 }
 
@@ -27,7 +30,7 @@ impl Scene {
         triangles: Octree<Triangle>,
         lights: Vec<Light>,
         ambient: Light,
-        parse_duration: std::time::Duration,
+        parse_duration: Duration,
         file_type: FileType,
     ) -> Self {
         Self {

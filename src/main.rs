@@ -1,5 +1,6 @@
 extern crate bmp;
 extern crate num_integer;
+use serde;
 
 mod camera;
 mod frame_buffer;
