@@ -6,6 +6,8 @@ use crate::octree::Octree;
 use crate::triangle;
 use crate::triangle::Triangle;
 use crate::vector::Point;
+use image::{DynamicImage, GenericImageView, Pixel};
+use std::path::{Path, PathBuf};
 use tobj;
 
 pub fn read_obj(path: &Path) -> Result<Scene, String> {
@@ -15,12 +17,21 @@ pub fn read_obj(path: &Path) -> Result<Scene, String> {
     }
     let mut opt = tobj::GPU_LOAD_OPTIONS;
     opt.single_index = false;
+
     let obj = tobj::load_obj(path, &opt);
-    let (models, _materials) = obj.expect("Failed to load OBJ file");
-    let triangles = parse_triangle(models)?;
+    let (models, _) = obj.expect("Failed to load OBJ file");
+    let texture = match get_texture(path) {
+        Some((path, texture)) => {
+            println!("Texture found: {}", path.display());
+            Some(texture)
+        }
+        None => None,
+    };
+    let triangles = parse_triangle(models, &texture)?;
     if triangles.len() == 0 {
         return Err("No triangles found".into());
     }
+
     let camera = look_at(&triangles);
     let mut lights: Vec<Light> = vec![];
 
@@ -43,6 +54,29 @@ pub fn read_obj(path: &Path) -> Result<Scene, String> {
 
 fn vertex_normals_loaded(mesh: &tobj::Mesh) -> bool {
     mesh.normals.len() != 0 && mesh.normal_indices.len() != 0
+}
+
+fn get_texture(obj_path: &Path) -> Option<(PathBuf, DynamicImage)> {
+    let mtl_path = obj_path.with_extension("mtl");
+    let mtl = tobj::load_mtl(mtl_path);
+    if let Err(_) = mtl {
+        return None;
+    }
+    let mut texture_path: Option<PathBuf> = None;
+
+    for mat in mtl.unwrap().0.iter() {
+        if let Some(ref path) = mat.diffuse_texture {
+            texture_path = Some(obj_path.with_file_name(path));
+        }
+    }
+
+    match texture_path {
+        Some(path) => {
+            let texture = image::open(&path).expect("Failed to open texture image");
+            return Some((path, texture));
+        }
+        None => None,
+    }
 }
 
 fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<(), String> {
@@ -90,7 +124,17 @@ fn load_tri_vector(points: &Vec<f32>, indices: &Vec<u32>, i: usize) -> (Point<f3
     (p0, p1, p2)
 }
 
-fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
+fn get_texture_coordinate(model: &tobj::Model, vertex_index: usize) -> Option<(f32, f32)> {
+    let texture_coords = &model.mesh.texcoords;
+    let texture_coords_i = &model.mesh.texcoord_indices;
+    let i = texture_coords_i[vertex_index] as usize;
+    if i * 2 + 1 >= texture_coords.len() {
+        return None;
+    }
+    Some((texture_coords[i * 2], texture_coords[i * 2 + 1]))
+}
+
+fn parse_triangle(models: Vec<tobj::Model>, texture: &Option<DynamicImage>) -> Result<Vec<Triangle>, String> {
     let mut triangles: Vec<Triangle> = Vec::new();
 
     for (_, m) in models.iter().enumerate() {
@@ -112,13 +156,23 @@ fn parse_triangle(models: Vec<tobj::Model>) -> Result<Vec<Triangle>, String> {
                 failed += 1;
                 continue;
             }
-            let color = Point::homogeneous(255);
+            // TODO, average the texture coordinates, not just use the first one
+            let color = match get_texture_coordinate(&m, i) {
+                Some((u, v)) => {
+                    let (w, h) = texture.as_ref().unwrap().dimensions();
+                    let x = (u * w as f32) as u32;
+                    let y = ((1.0 - v) * (h - 1) as f32) as u32;
+                    let color = texture.as_ref().unwrap().get_pixel(x, y).to_rgb();
+                    Point::new(color[0], color[1], color[2])
+                }
+                None => Point::new(255, 0, 0),
+            };
             let triangle = match vertex_normals_loaded(&m.mesh) {
                 true => {
                     let (n0, n1, n2) = load_tri_vector(normals, normals_i, i);
                     triangle::Triangle::with_vertex_normals(p0, p1, p2, n0, n1, n2, color)
                 }
-                false => triangle::Triangle::new(p0, p1, p2, Point::homogeneous(255)),
+                false => triangle::Triangle::new(p0, p1, p2, color),
             };
             triangles.push(triangle);
         }

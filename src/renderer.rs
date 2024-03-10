@@ -39,6 +39,7 @@ impl Renderer {
 
     // TODO: move to Hit
     pub fn get_color(&self, scene: &Scene, hit: &Hit) -> Point<u8> {
+        let color = Point::new(hit.color.x as f32, hit.color.y as f32, hit.color.z as f32);
         let mut acc = Point::homogeneous(0.0);
         let mut additions: usize = 0;
 
@@ -47,7 +48,7 @@ impl Renderer {
                 continue;
             }
 
-            let relative = light.as_float() * light.relative_intensity(&hit.point, &hit.normal);
+            let relative = color * light.relative_intensity(&hit.point, &hit.normal);
             acc += relative;
             additions += 1;
         }

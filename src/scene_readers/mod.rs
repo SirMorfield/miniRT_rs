@@ -100,7 +100,7 @@ pub fn look_at(triangles: &Vec<Triangle>) -> Camera {
 pub fn default_ambient() -> Light {
     Light::new(
         Point::homogeneous(0.0),
-        Float0to1::new(0.5).unwrap(),
+        Float0to1::new(0.1).unwrap(),
         Point::homogeneous(255),
     )
 }

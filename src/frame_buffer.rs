@@ -7,7 +7,7 @@ use std::io;
 use std::vec::Vec;
 
 pub fn to_u32(color: Point<u8>) -> u32 {
-    (color.z as u32) | ((color.x as u32) << 8) | ((color.y as u32) << 16)
+    (color.z as u32) | ((color.y as u32) << 8) | ((color.x as u32) << 16)
 }
 
 pub fn to_u8(color: u32) -> Point<u8> {
