@@ -8,11 +8,10 @@ use crate::triangle::Triangle;
 use crate::vector::Point;
 use tobj;
 
-pub fn read_obj(path: &std::path::Path) -> Result<Scene, String> {
+pub fn read_obj(path: &Path) -> Result<Scene, String> {
     let now = std::time::Instant::now();
-    let path = path.display().to_string();
-    if !path.ends_with(".obj") {
-        return Err("File must end with .rt".into());
+    if path.extension().unwrap() != "obj" {
+        return Err("File must end with .obj".into());
     }
     let mut opt = tobj::GPU_LOAD_OPTIONS;
     opt.single_index = false;
