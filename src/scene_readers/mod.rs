@@ -5,6 +5,7 @@ use crate::{camera::Camera, light::Light, vector::Point};
 use serde::{Deserialize, Serialize};
 use size::Size;
 use std::fs::File;
+use std::io::BufWriter;
 use std::path::Path;
 use std::time::Duration;
 
@@ -51,9 +52,10 @@ impl Scene {
         if path.extension().unwrap() != "cbor" {
             return Err("File extension must be .cbor".to_string());
         }
-        let ferris_file = File::create(path).map_err(|e| e.to_string())?;
-        serde_cbor::to_writer(&ferris_file, &self).map_err(|e| e.to_string())?;
-        let file_size = ferris_file.metadata().map_err(|e| e.to_string())?.len();
+        let file = File::create(path).map_err(|e| e.to_string())?;
+        let mut file_buf = BufWriter::new(&file);
+        serde_cbor::to_writer(&mut file_buf, &self).map_err(|e| e.to_string())?;
+        let file_size = file.metadata().map_err(|e| e.to_string())?.len();
         Ok(Size::from_bytes(file_size))
     }
 
