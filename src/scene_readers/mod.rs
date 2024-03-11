@@ -3,6 +3,7 @@ use crate::octree::Octree;
 use crate::triangle::Triangle;
 use crate::{camera::Camera, light::Light, vector::Point};
 use serde::{Deserialize, Serialize};
+use size::Size;
 use std::fs::File;
 use std::path::Path;
 use std::time::Duration;
@@ -46,13 +47,14 @@ impl Scene {
         }
     }
 
-    pub fn save_to_file(&self, path: &Path) -> Result<(), String> {
+    pub fn save_to_file(&self, path: &Path) -> Result<Size, String> {
         if path.extension().unwrap() != "cbor" {
             return Err("File extension must be .cbor".to_string());
         }
         let ferris_file = File::create(path).map_err(|e| e.to_string())?;
-        serde_cbor::to_writer(ferris_file, &self).map_err(|e| e.to_string())?;
-        Ok(())
+        serde_cbor::to_writer(&ferris_file, &self).map_err(|e| e.to_string())?;
+        let file_size = ferris_file.metadata().map_err(|e| e.to_string())?.len();
+        Ok(Size::from_bytes(file_size))
     }
 
     pub fn void(&self) -> Point<u8> {

@@ -42,8 +42,8 @@ fn loop_until_closed(
             if key == Key::E {
                 pressed = true;
                 let path = PathBuf::from("scene.cbor");
-                scene.read().unwrap().save_to_file(&path).unwrap();
-                println!("Scene saved to {:?}", path);
+                let file_size = scene.read().unwrap().save_to_file(&path).unwrap();
+                println!("Scene saved to {:?} ({})", path, file_size);
             }
         }
         if pressed {
