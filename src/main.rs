@@ -1,6 +1,16 @@
 extern crate bmp;
 extern crate num_integer;
 
+use std::sync::Arc;
+use std::sync::RwLock;
+
+use init::Argv;
+use init::get_resolution;
+use init::get_scene;
+use window::loop_until_closed;
+
+use crate::threading::MultiThreadedRenderer;
+
 mod camera;
 mod frame_buffer;
 mod helpers;
@@ -17,48 +27,7 @@ mod threading;
 mod triangle;
 mod util;
 mod vector;
-
-use crate::threading::MultiThreadedRenderer;
-use init::get_resolution;
-use init::get_scene;
-use init::get_window;
-use init::Argv;
-use minifb::{Key, Window};
-use std::path::PathBuf;
-use std::sync::Arc;
-use std::sync::RwLock;
-use std::time::Duration;
-
-fn loop_until_closed(
-    window: &mut Window,
-    renderer: &mut MultiThreadedRenderer,
-    scene: Arc<RwLock<scene_readers::Scene>>,
-    res: resolution::Resolution,
-) {
-    let mut pressed = true;
-    while window.is_open() && !window.is_key_down(Key::Escape) {
-        for key in window.get_keys() {
-            pressed = pressed || scene.write().unwrap().camera.keyboard(&key);
-            if key == Key::E {
-                pressed = true;
-                let path = PathBuf::from("scene.cbor");
-                let file_size = scene.read().unwrap().save_to_file(&path).unwrap();
-                println!("Scene saved to {:?} ({})", path, file_size);
-            }
-        }
-        if pressed {
-            renderer.render(&scene, false);
-            let fb = renderer.frame_buffer.lock().unwrap();
-            window
-                .update_with_buffer(&fb.buffer(), res.width.get(), res.height.get())
-                .unwrap();
-        } else {
-            window.update();
-            std::thread::sleep(Duration::from_micros(16600));
-        }
-        pressed = false;
-    }
-}
+mod window;
 
 fn main() {
     let argv = Argv::new().unwrap();
@@ -71,7 +40,6 @@ fn main() {
         let fb = renderer.frame_buffer.lock().unwrap();
         fb.save_as_bmp(&output_file).unwrap();
     } else {
-        let mut window = get_window(&resolution);
-        loop_until_closed(&mut window, &mut renderer, scene, resolution);
+        loop_until_closed(&mut renderer, scene, resolution);
     }
 }

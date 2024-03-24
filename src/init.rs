@@ -5,7 +5,6 @@ use crate::{
 use std::{
     num::NonZeroUsize,
     path::{Path, PathBuf},
-    time,
 };
 
 pub fn get_scene(path: &Path) -> Result<Scene, String> {
@@ -22,25 +21,6 @@ pub fn get_resolution() -> Resolution {
     );
     resolution.print();
     resolution
-}
-
-pub fn get_window(resolution: &Resolution) -> minifb::Window {
-    let mut window = minifb::Window::new(
-        "Test - ESC to exit",
-        resolution.width.get(),
-        resolution.height.get(),
-        minifb::WindowOptions::default(),
-    )
-    .unwrap();
-    window
-        .update_with_buffer(
-            &vec![0; resolution.width.get() * resolution.height.get()],
-            resolution.width.get(),
-            resolution.height.get(),
-        )
-        .unwrap();
-    window.limit_update_rate(Some(time::Duration::from_micros(16600)));
-    window
 }
 
 pub struct Argv {

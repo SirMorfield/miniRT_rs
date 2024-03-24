@@ -110,7 +110,8 @@ fn validate_mesh(mesh: &tobj::Mesh, texture: &Option<DynamicImage>) -> Result<Me
         info.has_texture_coords = true;
     }
     if texture_coords_i.len() != 0 && texture.is_none() {
-        return Err("Texture coordinates found but no texture".into());
+        println!("WARN: Texture coordinates found but no texture");
+        info.has_texture_coords = false;
     }
     if texture_coords_i.len() != 0 && texture_coords_i.len() != vertices_i.len() {
         return Err("Indices and texture coordinates must be the same length".into());
