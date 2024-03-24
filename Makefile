@@ -3,9 +3,9 @@ flames:
 	sudo chmod o+rw output.bmp
 tea:
 	rm -rf output.bmp
-	cargo run --release -- obj/teapot.obj output.bmp
+	cargo run --release -- ToFile obj/teapot.obj output.bmp
 
 window:
-	cargo run --release -- obj/teapot.obj
+	cargo run --release -- Window obj/teapot.obj
 
 .PHONY: flames tea window
