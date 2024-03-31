@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{ErrorKind, Read, Write};
 use std::net::TcpStream;
 
 pub struct NetSocket {
@@ -56,7 +56,7 @@ impl NetSocket {
             }
             let read = self.stream.read(&mut self.buffer[self.len..])?;
             if read == 0 {
-                return Err(std::io::Error::new(std::io::ErrorKind::Other, "Connection closed"));
+                return Err(std::io::Error::new(ErrorKind::Other, "Connection closed"));
             }
             self.len += read;
         }

@@ -40,13 +40,13 @@ fn main() {
     let scene = Arc::new(RwLock::new(get_scene(&argv.input_file).unwrap()));
 
     match argv.mode {
+        Mode::NetServer => {
+            let mut server = NetServer::new(&argv.address.unwrap(), scene, &resolution);
+            server.start()
+        }
         Mode::NetClient => {
             let mut client = NetClient::new(&argv.address.unwrap()).unwrap();
             client.start().unwrap();
-        }
-        Mode::NetServer => {
-            let server = NetServer::new(&argv.address.unwrap());
-            server.start()
         }
         Mode::ToFile => {
             renderer.render(&scene, true);

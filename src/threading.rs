@@ -31,7 +31,7 @@ impl MultiThreadedRenderer {
                 .get(),
             progress_logger: ProgressLogger::new("Rendering", PositiveNonzeroF32::new(0.2).unwrap(), 2),
             renderer: Arc::new(Renderer::new(resolution)),
-            frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(resolution).unwrap())),
+            frame_buffer: Arc::new(Mutex::new(FrameBuffer::new(&resolution).unwrap())),
         }
     }
 

@@ -32,12 +32,12 @@ pub struct FrameBuffer {
 
 impl FrameBuffer {
     // ? why am I allowed to use a result when there is only ever a ok?
-    pub fn new(resolution: Resolution) -> Result<FrameBuffer, &'static str> {
+    pub fn new(resolution: &Resolution) -> Result<FrameBuffer, &'static str> {
         let mut buffer = Vec::<u32>::new();
         buffer.resize(resolution.width.get() * resolution.height.get(), 0);
         return Ok(FrameBuffer {
             buffer,
-            resolution,
+            resolution: *resolution,
             pixel_index: RandomIterator::new(resolution.width.get() * resolution.height.get()),
         });
     }
