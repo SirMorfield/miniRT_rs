@@ -15,7 +15,7 @@ impl Renderer {
         Self { resolution }
     }
 
-    /// TOOD: this is completely broken when the fov changes
+    /// TODO: this is completely broken when the fov changes
     pub fn ray_from_pixel(&self, camera: &Camera, x: f32, y: f32) -> Ray {
         let px = (2.0 * x / (self.resolution.width.get() as f32) - 1.0) * self.resolution.aspect_ratio * camera.fow_tan;
         let py = (2.0 * y / (self.resolution.height.get() as f32) - 1.0) * camera.fow_tan;
@@ -86,12 +86,12 @@ impl Renderer {
     pub fn render(&self, scene: &Scene, camera: &Camera, x: f32, y: f32) -> Point<u8> {
         let mut colors: Vec<Point<u8>> = Vec::new();
         colors.reserve(self.resolution.aa.get());
-        let row_colums = self.resolution.aa.pixels_per_side();
+        let row_columns = self.resolution.aa.pixels_per_side();
 
-        for sub_y in 0..row_colums {
-            for sub_x in 0..row_colums {
-                let x = x + (sub_x as f32) / (row_colums as f32);
-                let y = y + (sub_y as f32) / (row_colums as f32);
+        for sub_y in 0..row_columns {
+            for sub_x in 0..row_columns {
+                let x = x + (sub_x as f32) / (row_columns as f32);
+                let y = y + (sub_y as f32) / (row_columns as f32);
                 let ray = self.ray_from_pixel(camera, x, y);
                 let hit = self.hit(scene, &ray);
                 match hit {

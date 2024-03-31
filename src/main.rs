@@ -8,6 +8,9 @@ use init::Argv;
 use init::get_resolution;
 use init::get_scene;
 use window::loop_until_closed;
+use crate::init::Mode;
+use crate::net::NetClient;
+use crate::net::NetServer;
 
 use crate::threading::MultiThreadedRenderer;
 
@@ -28,18 +31,30 @@ mod triangle;
 mod util;
 mod vector;
 mod window;
+mod net;
 
 fn main() {
-    let argv = Argv::new().unwrap();
+    let argv = Argv::new();
     let resolution = get_resolution();
     let mut renderer = MultiThreadedRenderer::new(resolution);
     let scene = Arc::new(RwLock::new(get_scene(&argv.input_file).unwrap()));
 
-    if let Some(output_file) = argv.output_file {
-        renderer.render(&scene, true);
-        let fb = renderer.frame_buffer.lock().unwrap();
-        fb.save_as_bmp(&output_file).unwrap();
-    } else {
-        loop_until_closed(&mut renderer, scene, resolution);
+    match argv.mode {
+        Mode::NetClient => {
+            let mut client = NetClient::new(&argv.address.unwrap()).unwrap();
+            client.start().unwrap();
+        }
+        Mode::NetServer => {
+            let server = NetServer::new(&argv.address.unwrap());
+            server.start()
+        }
+        Mode::ToFile => {
+            renderer.render(&scene, true);
+            let fb = renderer.frame_buffer.lock().unwrap();
+            fb.save_as_bmp(&argv.output_file.unwrap()).unwrap();
+        }
+        Mode::Window => {
+            loop_until_closed(&mut renderer, scene, resolution);
+        }
     }
 }

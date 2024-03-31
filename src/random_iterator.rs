@@ -13,7 +13,7 @@ pub struct RandomIterator {
 impl RandomIterator {
     pub fn new(max: usize) -> Self {
         Self {
-            max: max,
+            max,
             offset: 0,
             actual: 0,
             step_size: (max / 100) + 1,

@@ -17,6 +17,7 @@ mod rt;
 pub enum FileType {
     Rt,
     Obj,
+    Cbor,
 }
 
 #[derive(Serialize, Deserialize)]

@@ -56,7 +56,7 @@ impl Argv {
         let mode = mode.unwrap();
 
         if mode == Mode::NetClient || mode == Mode::NetServer {
-            if argv.len() < 4 {
+            if argv.len() < 5 {
                 error(&argv);
             }
             let input_file = argv.get(2).map(|s| PathBuf::from(s)).unwrap();
@@ -84,6 +84,6 @@ impl Argv {
 
 fn error(argv: &Vec<String>) -> ! {
     let modes = Mode::iter().map(|m| m.to_string()).collect::<Vec<_>>().join(", ");
-    println!("Usage: {} <{modes}> <scene.[rt,obj,blend]> >output_file.[bmp,cbor]> [<address>]", argv.get(0).unwrap());
+    println!("Usage: {} <{modes}> <scene.[rt,obj,blend]> <output_file.[bmp,cbor]> [<address>]", argv.get(0).unwrap());
     std::process::exit(1);
 }
