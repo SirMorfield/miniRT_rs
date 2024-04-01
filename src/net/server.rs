@@ -4,7 +4,7 @@ use std::net::{TcpListener};
 use std::sync::{Arc, Mutex, RwLock};
 use std::thread;
 use std::time::Duration;
-use crate::frame_buffer::FrameBuffer;
+use crate::frame_buffer::{FrameBuffer, PixelProvider};
 use crate::net::{NetCommand, NetSocket};
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
@@ -14,6 +14,7 @@ pub struct NetServer {
     connections: Arc<Mutex<Vec<(bool, NetSocket)>>>,
     scene: Arc<RwLock<Scene>>,
     frame_buffer: FrameBuffer,
+    pixel_stream: PixelProvider
 }
 
 impl NetServer {
@@ -23,6 +24,7 @@ impl NetServer {
             connections: Arc::new(Mutex::new(Vec::new())),
             scene,
             frame_buffer: FrameBuffer::new(resolution).unwrap(),
+            pixel_stream: PixelProvider::new(resolution)
         }
     }
 
@@ -48,7 +50,7 @@ impl NetServer {
         loop {
             let mut sockets = self.connections.lock().unwrap();
             for (alive, socket) in sockets.iter_mut().filter(|(alive, _)| *alive) {
-                let coordinate = self.frame_buffer.get_coordinate();
+                let coordinate = self.pixel_stream.get_coordinate();
                 if coordinate.is_none() {
                     *alive = true;
                     continue;

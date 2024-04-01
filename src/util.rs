@@ -62,3 +62,14 @@ pub trait Shape {
 pub fn fps_to_duration(fps: u32) -> std::time::Duration {
     std::time::Duration::from_micros(1_000_000 / fps as u64)
 }
+
+pub struct Pixel {
+    pub x: usize,
+    pub y: usize,
+}
+
+impl Pixel {
+    pub fn new(x: usize, y: usize) -> Self {
+        Self { x, y }
+    }
+}

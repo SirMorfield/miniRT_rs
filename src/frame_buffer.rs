@@ -18,45 +18,18 @@ pub fn to_u8(color: u32) -> Point<u8> {
     )
 }
 
-#[allow(dead_code)]
-pub enum Flip {
-    Horizontal,
-    Vertical,
-}
 
-pub struct FrameBuffer {
-    buffer: Vec<u32>,
-    resolution: Resolution,
+pub struct PixelProvider {
     pixel_index: RandomIterator,
+    resolution: Resolution,
 }
 
-impl FrameBuffer {
-    // ? why am I allowed to use a result when there is only ever a ok?
-    pub fn new(resolution: &Resolution) -> Result<FrameBuffer, &'static str> {
-        let mut buffer = Vec::<u32>::new();
-        buffer.resize(resolution.width.get() * resolution.height.get(), 0);
-        return Ok(FrameBuffer {
-            buffer,
-            resolution: *resolution,
+impl PixelProvider {
+    pub fn new(resolution: &Resolution) -> PixelProvider {
+        PixelProvider {
             pixel_index: RandomIterator::new(resolution.width.get() * resolution.height.get()),
-        });
-    }
-
-    pub fn reset_progress(&mut self) {
-        self.pixel_index.reset();
-    }
-
-    pub fn buffer(&self) -> &Vec<u32> {
-        &self.buffer
-    }
-
-    pub fn pixel_count(&self) -> usize {
-        return self.resolution.width.get() * self.resolution.height.get();
-    }
-
-    pub fn progress(&self) -> Float0to1 {
-        return Float0to1::new(self.pixel_index.i() as f32 / self.pixel_count() as f32)
-            .unwrap_or(Float0to1::new(f32::EPSILON).unwrap());
+            resolution: *resolution,
+        }
     }
 
     #[allow(dead_code)]
@@ -76,6 +49,68 @@ impl FrameBuffer {
             };
         }
         result
+    }
+
+    pub fn get_coordinate_iter<'a>(&'a mut self) -> impl Iterator<Item=(usize, usize)> + 'a {
+        std::iter::from_fn(move || {
+            match self.pixel_index.next() {
+                None => None,
+                Some(i) => Some(self.i_to_coord(i)),
+            }
+        })
+    }
+
+    fn i_to_coord(&self, i: usize) -> (usize, usize) {
+        (i % self.resolution.width.get(), i / self.resolution.width.get())
+    }
+}
+
+impl Iterator for PixelProvider {
+    type Item = (usize, usize);
+
+    fn next(&mut self) -> Option<(usize, usize)> {
+        match self.pixel_index.next() {
+            None => None,
+            Some(i) => Some(self.i_to_coord(i)),
+        }
+    }
+}
+
+
+
+
+#[allow(dead_code)]
+pub enum Flip {
+    Horizontal,
+    Vertical,
+}
+
+pub struct FrameBuffer {
+    buffer: Vec<u32>,
+    resolution: Resolution,
+}
+
+impl FrameBuffer {
+    // ? why am I allowed to use a result when there is only ever a ok?
+    pub fn new(resolution: &Resolution) -> Result<FrameBuffer, &'static str> {
+        let mut buffer = Vec::<u32>::new();
+        buffer.resize(resolution.width.get() * resolution.height.get(), 0);
+        return Ok(FrameBuffer {
+            buffer,
+            resolution: *resolution,
+        });
+    }
+
+    pub fn buffer(&self) -> &Vec<u32> {
+        &self.buffer
+    }
+
+    pub fn pixel_count(&self) -> usize {
+        return self.resolution.width.get() * self.resolution.height.get();
+    }
+
+    pub fn progress(&self) -> Float0to1 {
+        Float0to1::new(0.0).unwrap()
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Point<u8>) {

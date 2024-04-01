@@ -1,8 +1,11 @@
+use std::num::NonZeroUsize;
+use std::sync::{Arc, mpsc, Mutex, RwLock};
 use crate::camera::Camera;
 use crate::light::Light;
 use crate::resolution::Resolution;
+use crate::scene_readers;
 use crate::scene_readers::Scene;
-use crate::util::{Hit, Ray};
+use crate::util::{Hit, Pixel, Ray};
 use crate::vector::Point;
 
 #[derive(Clone)]
@@ -105,4 +108,49 @@ impl Renderer {
         }
         return Self::average_color(&colors) + scene.ambient.absolute_color();
     }
+}
+
+
+pub fn render_multithreaded<const N: usize>(
+    scene: Arc<RwLock<Scene>>,
+    resolution: &Resolution,
+    pixels: impl Iterator<Item=(usize, usize)> + Send + 'static,
+) -> impl Iterator<Item=[Option<(usize, usize, Point<u8>)>; N]>
+{
+    let threads = std::thread::available_parallelism()
+        .unwrap_or(NonZeroUsize::new(8).unwrap())
+        .get();
+    let (tx, rx) = mpsc::channel();
+    let renderer = Arc::new(Renderer::new(resolution.clone()));
+    let pixels = Arc::new(Mutex::new(pixels));
+
+    for _ in 0..threads {
+        let tx = tx.clone();
+        let renderer = renderer.clone();
+        let scene = scene.clone();
+        let pixels = pixels.clone();
+
+        std::thread::spawn(move || {
+            let scene = scene.read().unwrap();
+            loop {
+                let mut pixels_lock = pixels.lock().unwrap();
+                let coordinates_arr = pixels_lock.by_ref().take(N).collect::<Vec<_>>();
+                drop(pixels_lock); // unlock mutex as soon as possible
+
+                let mut colors = [None; N];
+                for (i, what) in coordinates_arr.iter().enumerate() {
+                    let x = what.0;
+                    let y = what.1;
+                    let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
+                    colors[i] = Some((x, y, color));
+                }
+                if colors.iter().all(|c| c.is_none()) {
+                    return
+                }
+                tx.send(colors).unwrap();
+            }
+        });
+    }
+    drop(tx);
+    rx.into_iter()
 }

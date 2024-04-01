@@ -8,10 +8,8 @@ use minifb::Key;
 
 use crate::resolution::Resolution;
 use crate::scene_readers;
-use crate::threading::MultiThreadedRenderer;
 
 pub fn loop_until_closed(
-    renderer: &mut MultiThreadedRenderer,
     scene: Arc<RwLock<scene_readers::Scene>>,
     resolution: Resolution,
 ) {
@@ -27,16 +25,16 @@ pub fn loop_until_closed(
                 println!("Scene saved to {:?} ({})", path, file_size);
             }
         }
-        if pressed {
-            renderer.render(&scene, false);
-            let fb = renderer.frame_buffer.lock().unwrap();
-            window
-                .update_with_buffer(&fb.buffer(), resolution.width.get(), resolution.height.get())
-                .unwrap();
-        } else {
-            window.update();
-            std::thread::sleep(Duration::from_micros(16600));
-        }
+        // if pressed {
+        //     renderer.render(&scene, false);
+        //     let fb = renderer.frame_buffer.lock().unwrap();
+        //     window
+        //         .update_with_buffer(&fb.buffer(), resolution.width.get(), resolution.height.get())
+        //         .unwrap();
+        // } else {
+        //     window.update();
+        //     std::thread::sleep(Duration::from_micros(16600));
+        // }
         pressed = false;
     }
 }
