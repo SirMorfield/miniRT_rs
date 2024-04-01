@@ -13,14 +13,14 @@ mod cbor;
 mod obj;
 mod rt;
 
-#[derive(PartialEq, Serialize, Deserialize)]
+#[derive(PartialEq, Serialize, Deserialize, Debug)]
 pub enum FileType {
     Rt,
     Obj,
     Cbor,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct Scene {
     pub camera: Camera, // TODO: should be plural
     pub triangles: Octree<Triangle>,

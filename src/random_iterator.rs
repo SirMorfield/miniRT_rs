@@ -1,7 +1,10 @@
+use serde::{Deserialize, Serialize};
+
 ///
 /// Generates a random iterator that will iterate
 /// over all numbers in the range [0, max) in a random order.
 ///
+#[derive(PartialEq, Debug, Clone)]
 pub struct RandomIterator {
     max: usize,
     offset: usize,
@@ -49,7 +52,7 @@ impl Iterator for RandomIterator {
 }
 
 #[cfg(test)]
-mod randomiterator_test {
+mod random_iterator_test {
     use crate::random_iterator::RandomIterator;
 
     fn test(max: usize) {

@@ -144,8 +144,7 @@ const MAX_SHAPES_PER_OCTREE: usize = 10;
 /// let octree = Octree::new(shapes);
 /// assert_eq!(octree.shapes_count(), 1);
 ///```
-
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Octree<T> {
     aabb: AABB,
     children: Vec<Octree<T>>,
