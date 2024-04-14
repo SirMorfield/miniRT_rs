@@ -1,12 +1,11 @@
-use std::num::NonZeroUsize;
-use std::sync::{Arc, mpsc, Mutex, RwLock};
 use crate::camera::Camera;
 use crate::light::Light;
 use crate::resolution::Resolution;
-use crate::scene_readers;
 use crate::scene_readers::Scene;
-use crate::util::{Hit, Pixel, Ray};
+use crate::util::{Hit, PixelReq, PixelResult, PixelResultBuffer, Ray, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
+use std::num::NonZeroUsize;
+use std::sync::{mpsc, Arc, Mutex, RwLock};
 
 #[derive(Clone)]
 pub struct Renderer {
@@ -110,13 +109,11 @@ impl Renderer {
     }
 }
 
-
-pub fn render_multithreaded<const N: usize>(
+pub fn render_multithreaded(
     scene: Arc<RwLock<Scene>>,
     resolution: &Resolution,
-    pixels: impl Iterator<Item=(usize, usize)> + Send + 'static,
-) -> impl Iterator<Item=[Option<(usize, usize, Point<u8>)>; N]>
-{
+    pixels: impl Iterator<Item = PixelReq> + Send + 'static,
+) -> impl Iterator<Item = PixelResultBuffer> {
     let threads = std::thread::available_parallelism()
         .unwrap_or(NonZeroUsize::new(8).unwrap())
         .get();
@@ -134,18 +131,16 @@ pub fn render_multithreaded<const N: usize>(
             let scene = scene.read().unwrap();
             loop {
                 let mut pixels_lock = pixels.lock().unwrap();
-                let coordinates_arr = pixels_lock.by_ref().take(N).collect::<Vec<_>>();
+                let coordinates_arr = pixels_lock.by_ref().take(PIXEL_BUFFER_SIZE).collect::<Vec<PixelReq>>();
                 drop(pixels_lock); // unlock mutex as soon as possible
 
-                let mut colors = [None; N];
-                for (i, what) in coordinates_arr.iter().enumerate() {
-                    let x = what.0;
-                    let y = what.1;
-                    let color = renderer.render(&scene, &scene.camera, x as f32, y as f32);
-                    colors[i] = Some((x, y, color));
+                let mut colors = [None; PIXEL_BUFFER_SIZE];
+                for (i, coord) in coordinates_arr.iter().enumerate() {
+                    let color = renderer.render(&scene, &scene.camera, coord.x as f32, coord.y as f32);
+                    colors[i] = Some(PixelResult::new(coord.x, coord.y, color));
                 }
                 if colors.iter().all(|c| c.is_none()) {
-                    return
+                    return;
                 }
                 tx.send(colors).unwrap();
             }

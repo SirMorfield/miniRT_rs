@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use crate::{octree::AABB, vector::Point};
 
 pub struct Ray {
@@ -63,13 +65,31 @@ pub fn fps_to_duration(fps: u32) -> std::time::Duration {
     std::time::Duration::from_micros(1_000_000 / fps as u64)
 }
 
-pub struct Pixel {
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+pub struct PixelResult {
+    pub x: usize,
+    pub y: usize,
+    pub color: Point<u8>,
+}
+
+impl PixelResult {
+    pub fn new(x: usize, y: usize, color: Point<u8>) -> Self {
+        Self { x, y, color }
+    }
+}
+
+#[derive(Clone, Copy, Serialize, Deserialize, Debug)]
+pub struct PixelReq {
     pub x: usize,
     pub y: usize,
 }
 
-impl Pixel {
+impl PixelReq {
     pub fn new(x: usize, y: usize) -> Self {
         Self { x, y }
     }
 }
+
+pub const PIXEL_BUFFER_SIZE: usize = 1000;
+pub type PixelReqBuffer = [Option<PixelReq>; PIXEL_BUFFER_SIZE];
+pub type PixelResultBuffer = [Option<PixelResult>; PIXEL_BUFFER_SIZE];

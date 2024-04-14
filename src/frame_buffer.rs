@@ -1,6 +1,7 @@
 use crate::num::Float0to1;
 use crate::random_iterator::RandomIterator;
 use crate::resolution::Resolution;
+use crate::util::{PixelReq, PixelReqBuffer, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
 use bmp::{Image, Pixel};
 use std::io;
@@ -18,7 +19,6 @@ pub fn to_u8(color: u32) -> Point<u8> {
     )
 }
 
-
 pub struct PixelProvider {
     pixel_index: RandomIterator,
     resolution: Resolution,
@@ -33,16 +33,16 @@ impl PixelProvider {
     }
 
     #[allow(dead_code)]
-    pub fn get_coordinate(&mut self) -> Option<(usize, usize)> {
+    pub fn get_coordinate(&mut self) -> Option<PixelReq> {
         match self.pixel_index.next() {
             None => None,
             Some(i) => Some(self.i_to_coord(i)),
         }
     }
 
-    pub fn get_coordinates<const N: usize>(&mut self) -> [Option<(usize, usize)>; N] {
-        let mut result = [None; N];
-        for i in 0..N {
+    pub fn get_coordinates(&mut self) -> PixelReqBuffer {
+        let mut result = [None; PIXEL_BUFFER_SIZE];
+        for i in 0..PIXEL_BUFFER_SIZE {
             result[i] = match self.pixel_index.next() {
                 None => None,
                 Some(i) => Some(self.i_to_coord(i)),
@@ -51,33 +51,28 @@ impl PixelProvider {
         result
     }
 
-    pub fn get_coordinate_iter<'a>(&'a mut self) -> impl Iterator<Item=(usize, usize)> + 'a {
-        std::iter::from_fn(move || {
-            match self.pixel_index.next() {
-                None => None,
-                Some(i) => Some(self.i_to_coord(i)),
-            }
+    pub fn get_coordinate_iter<'a>(&'a mut self) -> impl Iterator<Item = PixelReq> + 'a {
+        std::iter::from_fn(move || match self.pixel_index.next() {
+            None => None,
+            Some(i) => Some(self.i_to_coord(i)),
         })
     }
 
-    fn i_to_coord(&self, i: usize) -> (usize, usize) {
-        (i % self.resolution.width.get(), i / self.resolution.width.get())
+    fn i_to_coord(&self, i: usize) -> PixelReq {
+        PixelReq::new(i % self.resolution.width.get(), i / self.resolution.width.get())
     }
 }
 
 impl Iterator for PixelProvider {
-    type Item = (usize, usize);
+    type Item = PixelReq;
 
-    fn next(&mut self) -> Option<(usize, usize)> {
+    fn next(&mut self) -> Option<PixelReq> {
         match self.pixel_index.next() {
             None => None,
             Some(i) => Some(self.i_to_coord(i)),
         }
     }
 }
-
-
-
 
 #[allow(dead_code)]
 pub enum Flip {
@@ -129,8 +124,8 @@ impl FrameBuffer {
         return Some(to_u8(self.buffer[i]));
     }
 
-    fn i_to_coord(&self, i: usize) -> (usize, usize) {
-        (i % self.resolution.width.get(), i / self.resolution.width.get())
+    fn i_to_coord(&self, i: usize) -> PixelReq {
+        PixelReq::new(i % self.resolution.width.get(), i / self.resolution.width.get())
     }
     fn coord_to_i(&self, x: usize, y: usize) -> usize {
         y * self.resolution.width.get() + x

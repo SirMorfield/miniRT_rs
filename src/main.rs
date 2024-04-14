@@ -4,22 +4,21 @@ extern crate num_integer;
 use std::sync::Arc;
 use std::sync::RwLock;
 
-use init::Argv;
-use init::get_resolution;
-use init::get_scene;
-use window::loop_until_closed;
 use crate::frame_buffer::PixelProvider;
 use crate::init::Mode;
 use crate::net::NetClient;
 use crate::net::NetServer;
-use crate::random_iterator::RandomIterator;
 use crate::renderer::render_multithreaded;
+use init::get_resolution;
+use init::get_scene;
+use init::Argv;
 
 mod camera;
 mod frame_buffer;
 mod helpers;
 mod init;
 mod light;
+mod net;
 mod num;
 mod octree;
 mod progress_logger;
@@ -31,7 +30,6 @@ mod triangle;
 mod util;
 mod vector;
 mod window;
-mod net;
 
 fn main() {
     let argv = Argv::new();
@@ -50,11 +48,11 @@ fn main() {
         }
         Mode::ToFile => {
             let pixel_provider = PixelProvider::new(&resolution);
-            let pixels = render_multithreaded::<1000>(scene, &resolution, pixel_provider);
+            let pixels = render_multithreaded(scene, &resolution, pixel_provider);
             for pixel_block in pixels {
                 for pixel in pixel_block {
-                    if let Some((x, y, color)) = pixel {
-                        fb.set_pixel(x, y, color);
+                    if let Some(pixel) = pixel {
+                        fb.set_pixel(pixel.x, pixel.y, pixel.color);
                     }
                 }
             }
