@@ -35,7 +35,7 @@ fn main() {
     let argv = Argv::new();
     let resolution = get_resolution();
     let mut fb = frame_buffer::FrameBuffer::new(&resolution).unwrap();
-    let scene = Arc::new(RwLock::new(get_scene(&argv.input_file).unwrap()));
+    let scene = get_scene(&argv.input_file).unwrap();
 
     match argv.mode {
         Mode::NetServer => {
@@ -43,12 +43,14 @@ fn main() {
             server.start()
         }
         Mode::NetClient => {
-            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
+            let scene = Arc::new(RwLock::new(scene));
+            let pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
             let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
             fb.set_pixel_from_iterator(&mut pixels);
         }
         Mode::ToFile => {
             let pixel_provider = PixelProvider::new(&resolution);
+            let scene = Arc::new(RwLock::new(scene));
             let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
             fb.set_pixel_from_iterator(&mut pixels);
             fb.save_as_bmp(&argv.output_file.unwrap()).unwrap();

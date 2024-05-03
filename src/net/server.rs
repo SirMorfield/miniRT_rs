@@ -13,13 +13,13 @@ use std::time::Duration;
 pub struct NetServer {
     address: String,
     connections: Arc<Mutex<Vec<(bool, NetSocket)>>>,
-    scene: Arc<RwLock<Scene>>,
+    scene: Scene,
     frame_buffer: FrameBuffer,
     pixel_stream: PixelProvider,
 }
 
 impl NetServer {
-    pub fn new(address: &str, scene: Arc<RwLock<Scene>>, resolution: &Resolution) -> NetServer {
+    pub fn new(address: &str, scene: Scene, resolution: &Resolution) -> NetServer {
         NetServer {
             address: address.to_string(),
             connections: Arc::new(Mutex::new(Vec::new())),
