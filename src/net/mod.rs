@@ -6,12 +6,13 @@ pub use client::NetClient;
 pub use server::NetServer;
 pub use socket::NetSocket;
 
-use crate::{scene_readers::Scene, util::PixelReq};
+use crate::{scene_readers::Scene, util::PixelReqBuffer};
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum NetCommand {
     Identify,
     ReadScene(Scene),
-    RenderPixel(PixelReq),
+    #[serde(with = "serde_arrays")]
+    RenderPixel(PixelReqBuffer),
 }

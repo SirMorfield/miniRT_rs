@@ -1,7 +1,7 @@
 use crate::num::Float0to1;
 use crate::random_iterator::RandomIterator;
 use crate::resolution::Resolution;
-use crate::util::{PixelReq, PixelReqBuffer, PIXEL_BUFFER_SIZE};
+use crate::util::{PixelReq, PixelReqBuffer, PixelResBuffer, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
 use bmp::{Image, Pixel};
 use std::io;
@@ -64,13 +64,10 @@ impl PixelProvider {
 }
 
 impl Iterator for PixelProvider {
-    type Item = PixelReq;
+    type Item = PixelReqBuffer;
 
-    fn next(&mut self) -> Option<PixelReq> {
-        match self.pixel_index.next() {
-            None => None,
-            Some(i) => Some(self.i_to_coord(i)),
-        }
+    fn next(&mut self) -> Option<PixelReqBuffer> {
+        Some(self.get_coordinates())
     }
 }
 
@@ -114,6 +111,16 @@ impl FrameBuffer {
             panic!("Index out of bounds");
         }
         self.buffer[i] = to_u32(color);
+    }
+
+    pub fn set_pixel_from_iterator(&mut self, iter: &mut impl Iterator<Item = PixelResBuffer>) {
+        for pixel_buffer in iter {
+            for pixel in pixel_buffer {
+                if let Some(pixel) = pixel {
+                    self.set_pixel(pixel.x, pixel.y, pixel.color);
+                }
+            }
+        }
     }
 
     pub fn get_pixel(&self, x: usize, y: usize) -> Option<Point<u8>> {

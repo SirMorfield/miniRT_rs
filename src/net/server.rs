@@ -1,20 +1,21 @@
-use std::error::Error;
-use std::io::ErrorKind;
-use std::net::{TcpListener};
-use std::sync::{Arc, Mutex, RwLock};
-use std::thread;
-use std::time::Duration;
 use crate::frame_buffer::{FrameBuffer, PixelProvider};
 use crate::net::{NetCommand, NetSocket};
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
+use crate::util::PixelReqBuffer;
+use std::error::Error;
+use std::io::ErrorKind;
+use std::net::TcpListener;
+use std::sync::{Arc, Mutex, RwLock};
+use std::thread;
+use std::time::Duration;
 
 pub struct NetServer {
     address: String,
     connections: Arc<Mutex<Vec<(bool, NetSocket)>>>,
     scene: Arc<RwLock<Scene>>,
     frame_buffer: FrameBuffer,
-    pixel_stream: PixelProvider
+    pixel_stream: PixelProvider,
 }
 
 impl NetServer {
@@ -24,7 +25,7 @@ impl NetServer {
             connections: Arc::new(Mutex::new(Vec::new())),
             scene,
             frame_buffer: FrameBuffer::new(resolution).unwrap(),
-            pixel_stream: PixelProvider::new(resolution)
+            pixel_stream: PixelProvider::new(resolution),
         }
     }
 
@@ -32,42 +33,36 @@ impl NetServer {
         println!("Server listening on {}", self.address);
         let listener = TcpListener::bind(&self.address).unwrap();
         let inner_connections = self.connections.clone();
-        thread::spawn(move || for stream in listener.incoming() {
-            match stream {
-                Ok(stream) => {
-                    stream.set_nonblocking(true).unwrap();
+        thread::spawn(move || {
+            for stream in listener.incoming() {
+                match stream {
+                    Ok(stream) => {
+                        stream.set_nonblocking(true).unwrap();
 
-                    inner_connections
-                        .lock()
-                        .unwrap()
-                        .push((true, NetSocket::new(stream)));
+                        inner_connections.lock().unwrap().push((true, NetSocket::new(stream)));
+                    }
+                    Err(e) => eprintln!("Incoming stream error: {}", e),
                 }
-                Err(e) => eprintln!("Incoming stream error: {}", e)
-
             }
         });
 
         loop {
             let mut sockets = self.connections.lock().unwrap();
             for (alive, socket) in sockets.iter_mut().filter(|(alive, _)| *alive) {
-                let coordinate = self.pixel_stream.get_coordinate();
-                if coordinate.is_none() {
-                    *alive = true;
+                let coordinate = self.pixel_stream.get_coordinates();
+                if coordinate.iter().all(|c| c.is_none()) {
+                    println!("All pixels rendered, shutting down server");
                     continue;
                 }
-                let coordinate = coordinate.unwrap();
+
                 let cmd = NetCommand::RenderPixel(coordinate);
                 let binding = serde_cbor::to_vec(&cmd).unwrap();
 
                 if let Err(e) = socket.write(binding.as_slice()) {
-                    if e.kind() == ErrorKind::WouldBlock {
-                        *alive = true;
-                    } else {
+                    if e.kind() != ErrorKind::WouldBlock {
                         eprintln!("Client error: {}", e);
                         *alive = false;
                     }
-                } else {
-                    *alive = true;
                 }
 
                 thread::sleep(Duration::from_millis(1));

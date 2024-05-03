@@ -19,8 +19,8 @@ pub fn get_scene(path: &Path) -> Result<Scene, String> {
 
 pub fn get_resolution() -> Resolution {
     let resolution = Resolution::new(
-        NonZeroUsize::new(700).unwrap(),
-        NonZeroUsize::new(700).unwrap(),
+        NonZeroUsize::new(70).unwrap(),
+        NonZeroUsize::new(70).unwrap(),
         AALevel::new(1).unwrap(),
     );
     resolution.print();

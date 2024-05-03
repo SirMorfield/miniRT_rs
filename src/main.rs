@@ -43,19 +43,14 @@ fn main() {
             server.start()
         }
         Mode::NetClient => {
-            let mut client = NetClient::new(&argv.address.unwrap()).unwrap();
-            client.start().unwrap();
+            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
+            let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
+            fb.set_pixel_from_iterator(&mut pixels);
         }
         Mode::ToFile => {
             let pixel_provider = PixelProvider::new(&resolution);
-            let pixels = render_multithreaded(scene, &resolution, pixel_provider);
-            for pixel_block in pixels {
-                for pixel in pixel_block {
-                    if let Some(pixel) = pixel {
-                        fb.set_pixel(pixel.x, pixel.y, pixel.color);
-                    }
-                }
-            }
+            let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
+            fb.set_pixel_from_iterator(&mut pixels);
             fb.save_as_bmp(&argv.output_file.unwrap()).unwrap();
         }
         Mode::Window => {

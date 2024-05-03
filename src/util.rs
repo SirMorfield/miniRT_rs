@@ -66,13 +66,13 @@ pub fn fps_to_duration(fps: u32) -> std::time::Duration {
 }
 
 #[derive(Clone, Copy, Serialize, Deserialize, Debug)]
-pub struct PixelResult {
+pub struct PixelRes {
     pub x: usize,
     pub y: usize,
     pub color: Point<u8>,
 }
 
-impl PixelResult {
+impl PixelRes {
     pub fn new(x: usize, y: usize, color: Point<u8>) -> Self {
         Self { x, y, color }
     }
@@ -92,4 +92,4 @@ impl PixelReq {
 
 pub const PIXEL_BUFFER_SIZE: usize = 1000;
 pub type PixelReqBuffer = [Option<PixelReq>; PIXEL_BUFFER_SIZE];
-pub type PixelResultBuffer = [Option<PixelResult>; PIXEL_BUFFER_SIZE];
+pub type PixelResBuffer = [Option<PixelRes>; PIXEL_BUFFER_SIZE];
