@@ -1,5 +1,3 @@
-use serde::{Deserialize, Serialize};
-
 ///
 /// Generates a random iterator that will iterate
 /// over all numbers in the range [0, max) in a random order.

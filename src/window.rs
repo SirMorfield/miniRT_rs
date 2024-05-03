@@ -2,18 +2,14 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::RwLock;
 use std::time;
-use std::time::Duration;
 
 use minifb::Key;
 
 use crate::resolution::Resolution;
 use crate::scene_readers;
 
-pub fn loop_until_closed(
-    scene: Arc<RwLock<scene_readers::Scene>>,
-    resolution: Resolution,
-) {
-    let mut window = get_window(&resolution);
+pub fn loop_until_closed(scene: Arc<RwLock<scene_readers::Scene>>, resolution: Resolution) {
+    let window = get_window(&resolution);
     let mut pressed = true;
     while window.is_open() && !window.is_key_down(Key::Escape) {
         for key in window.get_keys() {

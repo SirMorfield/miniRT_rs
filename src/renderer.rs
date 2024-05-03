@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::light::Light;
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
-use crate::util::{Hit, PixelReq, PixelReqBuffer, PixelRes, PixelResBuffer, Ray, PIXEL_BUFFER_SIZE};
+use crate::util::{Hit, PixelReqBuffer, PixelRes, PixelResBuffer, Ray, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
 use std::num::NonZeroUsize;
 use std::sync::{mpsc, Arc, Mutex, RwLock};

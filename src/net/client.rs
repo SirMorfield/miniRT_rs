@@ -1,7 +1,6 @@
-use crate::frame_buffer::PixelProvider;
 use crate::net::NetCommand;
 use crate::scene_readers::Scene;
-use crate::util::{PixelReq, PixelReqBuffer};
+use crate::util::PixelReqBuffer;
 use std::io::Error;
 use std::net::TcpStream;
 use NetCommand::RenderPixel;
