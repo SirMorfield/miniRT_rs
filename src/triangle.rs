@@ -5,7 +5,7 @@ use crate::octree::AABB;
 use crate::util::{correct_normal, Hit, Intersect, Ray, Shape};
 use crate::vector::Point;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Triangle {
     pub p0: Point<f32>,
     pub p1: Point<f32>,

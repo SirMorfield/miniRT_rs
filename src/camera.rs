@@ -16,7 +16,7 @@ pub enum Direction {
     YawRight,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone)]
 pub struct Camera {
     pub pos: Point<f32>,
     pub dir: Point<f32>,
