@@ -38,17 +38,16 @@ impl NetServer {
     pub fn start(&mut self) {
         println!("Server listening on {}", self.address);
         let listener = TcpListener::bind(&self.address).unwrap();
-        let inner_connections = self.connections.clone();
+        let connections = self.connections.clone();
+
         thread::spawn(move || {
             for stream in listener.incoming() {
                 match stream {
                     Ok(stream) => {
                         stream.set_nonblocking(true).unwrap();
 
-                        inner_connections
-                            .lock()
-                            .unwrap()
-                            .push((SocketState::Uninitialized, NetSocket::new(stream)));
+                        let mut connections = connections.lock().unwrap();
+                        connections.push((SocketState::Uninitialized, NetSocket::new(stream)));
                     }
                     Err(e) => eprintln!("Incoming stream error: {}", e),
                 }
