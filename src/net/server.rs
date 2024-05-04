@@ -61,75 +61,67 @@ impl NetServer {
                 .iter_mut()
                 .filter(|(state, _)| *state != SocketState::Disconnected)
             {
-                if *state == SocketState::Initiated {
-                    let response = socket.read();
-                    match response {
-                        Ok(response) => {
-                            let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
-
-                            match response {
-                                NetResponse::RenderPixel(buffer) => self.frame_buffer.set_pixel_from_buffer(&buffer),
-                            }
-                            println!("Progress: {}%", self.frame_buffer.progress().get());
-                        }
-                        Err(e) => {
-                            if e.kind() != ErrorKind::WouldBlock {
-                                eprintln!("Client error: {}", e);
-                                *state = SocketState::Disconnected;
-                            }
-                        }
-                    }
-                }
-
-                let cmd = match state {
-                    SocketState::Uninitialized => NetCommand::ReadScene(self.scene.clone()),
-                    SocketState::Initiated => {
-                        let coordinate = self.pixel_stream.get_coordinates();
-                        if self.frame_buffer.is_complete() {
-                            println!("All pixels rendered, resetting");
-                            self.frame_buffer.save_as_bmp(Path::new("output.bmp")).unwrap();
-                            self.pixel_stream.reset();
-                            return;
-                        }
-                        NetCommand::RenderPixel(coordinate)
-                    }
-                    _ => unreachable!(),
-                };
-                let binding = serde_cbor::to_vec(&cmd).unwrap();
-
-                if let Err(e) = socket.write(binding.as_slice()) {
-                    if e.kind() != ErrorKind::WouldBlock {
-                        eprintln!("Client error: {}", e);
-                        *state = SocketState::Disconnected;
-                    }
-                }
-
-                if *state == SocketState::Uninitialized {
-                    *state = SocketState::Initiated;
-                }
+                #[rustfmt::skip]
+                handle_socket( state, socket, &mut self.frame_buffer, &mut self.pixel_stream, &self.scene);
                 thread::sleep(Duration::from_millis(1));
             }
             sockets.retain(|(state, _)| *state != SocketState::Disconnected);
         }
     }
+}
 
-    fn read_response(
-        &self,
-        response: &Result<Vec<u8>, std::io::Error>,
-        status: &mut SocketState,
-    ) -> Option<NetResponse> {
+fn handle_socket(
+    state: &mut SocketState,
+    socket: &mut NetSocket,
+    frame_buffer: &mut FrameBuffer,
+    pixel_stream: &mut PixelProvider,
+    scene: &Scene,
+) {
+    if *state == SocketState::Initiated {
+        let response = socket.read();
         match response {
             Ok(response) => {
                 let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
-                return Some(response);
+
+                match response {
+                    NetResponse::RenderPixel(buffer) => frame_buffer.set_pixel_from_buffer(&buffer),
+                }
+                println!("Progress: {}%", frame_buffer.progress().get());
             }
             Err(e) => {
                 if e.kind() != ErrorKind::WouldBlock {
                     eprintln!("Client error: {}", e);
-                    *status = SocketState::Disconnected;
+                    *state = SocketState::Disconnected;
+                    return;
                 }
-                return None;
             }
         }
+    }
+
+    let cmd = match state {
+        SocketState::Uninitialized => NetCommand::ReadScene(scene.clone()),
+        SocketState::Initiated => {
+            let coordinate = pixel_stream.get_coordinates();
+            if frame_buffer.is_complete() {
+                println!("All pixels rendered, resetting");
+                frame_buffer.save_as_bmp(Path::new("output.bmp")).unwrap();
+                pixel_stream.reset();
+                return;
+            }
+            NetCommand::RenderPixel(coordinate)
+        }
+        _ => unreachable!(),
+    };
+    let binding = serde_cbor::to_vec(&cmd).unwrap();
+
+    if let Err(e) = socket.write(binding.as_slice()) {
+        if e.kind() != ErrorKind::WouldBlock {
+            eprintln!("Client error: {}", e);
+            *state = SocketState::Disconnected;
+        }
+    }
+
+    if *state == SocketState::Uninitialized {
+        *state = SocketState::Initiated;
     }
 }
