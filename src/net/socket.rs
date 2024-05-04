@@ -5,7 +5,7 @@ pub struct NetSocket {
     stream: TcpStream,
     buffer: [u8; 512],
     len: usize,
-    command_size: Option<usize>,
+    msg_size: Option<usize>,
 }
 
 impl NetSocket {
@@ -13,8 +13,8 @@ impl NetSocket {
         NetSocket {
             stream,
             buffer: [0; 512],
-            len: 0,             // number of bytes at the start of the buffer that are valid
-            command_size: None, // size of the command we are currently reading
+            len: 0,         // number of bytes at the start of the buffer that are valid
+            msg_size: None, // size of the command we are currently reading
         }
     }
 
@@ -29,12 +29,12 @@ impl NetSocket {
         let mut out = Vec::new();
 
         loop {
-            if self.command_size.is_none() && self.len >= 8 {
-                self.command_size = Some(deserialize_u64(&self.buffer[..]) as usize);
+            if self.msg_size.is_none() && self.len >= 8 {
+                self.msg_size = Some(deserialize_u64(&self.buffer[..]) as usize);
                 self.buffer.rotate_left(8);
                 self.len -= 8;
             }
-            if let Some(command_size) = self.command_size {
+            if let Some(command_size) = self.msg_size {
                 let command_size_leftover = command_size - out.len();
                 let max = self.len.min(command_size_leftover);
                 out.extend(&self.buffer[..max]);
@@ -50,7 +50,7 @@ impl NetSocket {
                     panic!("out.len() > command_size");
                 }
                 if out.len() == command_size {
-                    self.command_size = None;
+                    self.msg_size = None;
                     return Ok(out);
                 }
             }

@@ -3,6 +3,7 @@ use crate::random_iterator::RandomIterator;
 use crate::resolution::Resolution;
 use crate::util::{PixelReq, PixelReqBuffer, PixelResBuffer, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
+use bitvec::prelude::*;
 use bmp::{Image, Pixel};
 use std::io;
 use std::vec::Vec;
@@ -30,6 +31,10 @@ impl PixelProvider {
             pixel_index: RandomIterator::new(resolution.width.get() * resolution.height.get()),
             resolution: *resolution,
         }
+    }
+
+    pub fn reset(&mut self) {
+        self.pixel_index.reset();
     }
 
     #[allow(dead_code)]
@@ -79,6 +84,7 @@ pub enum Flip {
 
 pub struct FrameBuffer {
     buffer: Vec<u32>,
+    assigned_pixels: BitVec<u32, Lsb0>,
     resolution: Resolution,
 }
 
@@ -90,11 +96,8 @@ impl FrameBuffer {
         return Ok(FrameBuffer {
             buffer,
             resolution: *resolution,
+            assigned_pixels: bitvec![u32, Lsb0; 0; resolution.width.get() * resolution.height.get()],
         });
-    }
-
-    pub fn buffer(&self) -> &Vec<u32> {
-        &self.buffer
     }
 
     pub fn pixel_count(&self) -> usize {
@@ -102,7 +105,12 @@ impl FrameBuffer {
     }
 
     pub fn progress(&self) -> Float0to1 {
-        Float0to1::new(0.0).unwrap()
+        let assigned = self.assigned_pixels.iter().filter(|x| **x).count();
+        return Float0to1::new(assigned as f32 / self.pixel_count() as f32).unwrap();
+    }
+
+    pub fn is_complete(&self) -> bool {
+        self.assigned_pixels.iter().all(|x| *x)
     }
 
     pub fn set_pixel(&mut self, x: usize, y: usize, color: Point<u8>) {
@@ -111,6 +119,7 @@ impl FrameBuffer {
             panic!("Index out of bounds");
         }
         self.buffer[i] = to_u32(color);
+        self.assigned_pixels.set(i, true);
     }
 
     pub fn set_pixel_from_iterator(&mut self, iter: &mut impl Iterator<Item = PixelResBuffer>) {

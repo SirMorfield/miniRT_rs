@@ -120,7 +120,6 @@ pub fn render_multithreaded(
     let (tx, rx) = mpsc::channel();
     let renderer = Arc::new(Renderer::new(resolution.clone()));
     let pixels = Arc::new(Mutex::new(pixels));
-
     for _ in 0..threads {
         let tx = tx.clone();
         let renderer = renderer.clone();

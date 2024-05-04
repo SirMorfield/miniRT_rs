@@ -44,9 +44,15 @@ fn main() {
         }
         Mode::NetClient => {
             let scene = Arc::new(RwLock::new(scene));
-            let pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
-            let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
-            fb.set_pixel_from_iterator(&mut pixels);
+            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
+            loop {
+                let pixel_requests = Some(pixel_provider.read_next_pixel());
+                let pixel_request_iter = pixel_requests.into_iter();
+                let pixels = render_multithreaded(scene.clone(), &resolution, pixel_request_iter);
+                for pixel in pixels {
+                    pixel_provider.send_pixel(pixel);
+                }
+            }
         }
         Mode::ToFile => {
             let pixel_provider = PixelProvider::new(&resolution);

@@ -1,9 +1,10 @@
 use crate::frame_buffer::{FrameBuffer, PixelProvider};
-use crate::net::{NetCommand, NetSocket};
+use crate::net::{NetCommand, NetResponse, NetSocket};
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
 use std::io::ErrorKind;
 use std::net::TcpListener;
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
@@ -60,14 +61,45 @@ impl NetServer {
                 .iter_mut()
                 .filter(|(state, _)| *state != SocketState::Disconnected)
             {
+                if *state == SocketState::Initiated {
+                    let response = socket.read();
+                    match response {
+                        Ok(response) => {
+                            let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
+
+                            match response {
+                                NetResponse::RenderPixel(buffer) => {
+                                    for pixel in buffer.iter() {
+                                        if let Some(pixel) = pixel {
+                                            self.frame_buffer.set_pixel(
+                                                pixel.x as usize,
+                                                pixel.y as usize,
+                                                pixel.color,
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                            println!("Progress: {}%", self.frame_buffer.progress().get());
+                        }
+                        Err(e) => {
+                            if e.kind() != ErrorKind::WouldBlock {
+                                eprintln!("Client error: {}", e);
+                                *state = SocketState::Disconnected;
+                            }
+                        }
+                    }
+                }
+
                 let cmd = match state {
                     SocketState::Uninitialized => NetCommand::ReadScene(self.scene.clone()),
                     SocketState::Initiated => {
                         let coordinate = self.pixel_stream.get_coordinates();
-                        if coordinate.iter().all(|c| c.is_none()) {
-                            println!("All pixels rendered, shutting down server");
-                            thread::sleep(Duration::from_millis(100));
-                            continue;
+                        if self.frame_buffer.is_complete() {
+                            println!("All pixels rendered, resetting");
+                            self.frame_buffer.save_as_bmp(Path::new("output.bmp")).unwrap();
+                            self.pixel_stream.reset();
+                            return;
                         }
                         NetCommand::RenderPixel(coordinate)
                     }

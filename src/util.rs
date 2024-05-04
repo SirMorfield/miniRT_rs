@@ -90,6 +90,6 @@ impl PixelReq {
     }
 }
 
-pub const PIXEL_BUFFER_SIZE: usize = 1000;
+pub const PIXEL_BUFFER_SIZE: usize = 100;
 pub type PixelReqBuffer = [Option<PixelReq>; PIXEL_BUFFER_SIZE];
 pub type PixelResBuffer = [Option<PixelRes>; PIXEL_BUFFER_SIZE];

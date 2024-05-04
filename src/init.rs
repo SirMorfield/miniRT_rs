@@ -2,14 +2,13 @@ use crate::{
     resolution::{AALevel, Resolution},
     scene_readers::{read_scene, Scene},
 };
+use std::str::FromStr;
 use std::{
     num::NonZeroUsize,
     path::{Path, PathBuf},
 };
-use std::str::FromStr;
-use strum_macros::{EnumString, EnumIter, Display};
 use strum::IntoEnumIterator;
-
+use strum_macros::{Display, EnumIter, EnumString};
 
 pub fn get_scene(path: &Path) -> Result<Scene, String> {
     let scene = read_scene(&path).unwrap();
@@ -19,15 +18,15 @@ pub fn get_scene(path: &Path) -> Result<Scene, String> {
 
 pub fn get_resolution() -> Resolution {
     let resolution = Resolution::new(
-        NonZeroUsize::new(70).unwrap(),
-        NonZeroUsize::new(70).unwrap(),
+        NonZeroUsize::new(200).unwrap(),
+        NonZeroUsize::new(200).unwrap(),
         AALevel::new(1).unwrap(),
     );
     resolution.print();
     resolution
 }
 
-#[derive(Debug,PartialEq,Display,EnumString,EnumIter)]
+#[derive(Debug, PartialEq, Display, EnumString, EnumIter)]
 pub enum Mode {
     ToFile,
     Window,
@@ -84,6 +83,9 @@ impl Argv {
 
 fn error(argv: &Vec<String>) -> ! {
     let modes = Mode::iter().map(|m| m.to_string()).collect::<Vec<_>>().join(", ");
-    println!("Usage: {} <{modes}> <scene.[rt,obj,blend]> <output_file.[bmp,cbor]> [<address>]", argv.get(0).unwrap());
+    println!(
+        "Usage: {} <{modes}> <scene.[rt,obj,blend]> <output_file.[bmp,cbor]> [<address>]",
+        argv.get(0).unwrap()
+    );
     std::process::exit(1);
 }
