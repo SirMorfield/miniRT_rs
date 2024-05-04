@@ -122,6 +122,14 @@ impl FrameBuffer {
         self.assigned_pixels.set(i, true);
     }
 
+    pub fn set_pixel_from_buffer(&mut self, buffer: &PixelResBuffer) {
+        for pixel in buffer {
+            if let Some(pixel) = pixel {
+                self.set_pixel(pixel.x, pixel.y, pixel.color);
+            }
+        }
+    }
+
     pub fn set_pixel_from_iterator(&mut self, iter: &mut impl Iterator<Item = PixelResBuffer>) {
         for pixel_buffer in iter {
             for pixel in pixel_buffer {

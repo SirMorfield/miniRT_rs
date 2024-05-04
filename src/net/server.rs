@@ -68,17 +68,7 @@ impl NetServer {
                             let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
 
                             match response {
-                                NetResponse::RenderPixel(buffer) => {
-                                    for pixel in buffer.iter() {
-                                        if let Some(pixel) = pixel {
-                                            self.frame_buffer.set_pixel(
-                                                pixel.x as usize,
-                                                pixel.y as usize,
-                                                pixel.color,
-                                            );
-                                        }
-                                    }
-                                }
+                                NetResponse::RenderPixel(buffer) => self.frame_buffer.set_pixel_from_buffer(&buffer),
                             }
                             println!("Progress: {}%", self.frame_buffer.progress().get());
                         }
@@ -120,6 +110,26 @@ impl NetServer {
                 thread::sleep(Duration::from_millis(1));
             }
             sockets.retain(|(state, _)| *state != SocketState::Disconnected);
+        }
+    }
+
+    fn read_response(
+        &self,
+        response: &Result<Vec<u8>, std::io::Error>,
+        status: &mut SocketState,
+    ) -> Option<NetResponse> {
+        match response {
+            Ok(response) => {
+                let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
+                return Some(response);
+            }
+            Err(e) => {
+                if e.kind() != ErrorKind::WouldBlock {
+                    eprintln!("Client error: {}", e);
+                    *status = SocketState::Disconnected;
+                }
+                return None;
+            }
         }
     }
 }

@@ -48,7 +48,6 @@ impl NetClient {
     }
 
     pub fn send_pixel(&mut self, pixel_res: PixelResBuffer) {
-        println!("Sending pixel response");
         let cmd = NetResponse::RenderPixel(pixel_res);
         let binding = serde_cbor::to_vec(&cmd).unwrap();
         self.reader.write(binding.as_slice()).unwrap();
