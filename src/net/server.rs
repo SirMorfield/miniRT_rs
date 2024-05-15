@@ -44,10 +44,12 @@ impl NetServer {
             for stream in listener.incoming() {
                 match stream {
                     Ok(stream) => {
+                        println!("Incoming stream");
                         stream.set_nonblocking(true).unwrap();
 
                         let mut connections = connections.lock().unwrap();
-                        connections.push((SocketState::Uninitialized, NetSocket::new(stream)));
+                        let len = connections.len();
+                        connections.push((SocketState::Uninitialized, NetSocket::new(stream, len as u64)));
                     }
                     Err(e) => eprintln!("Incoming stream error: {}", e),
                 }
