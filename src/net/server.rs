@@ -63,6 +63,9 @@ impl NetServer {
                 #[rustfmt::skip]
                 handle_socket( state, socket, &mut self.frame_buffer, &mut self.pixel_stream, &self.scene);
                 thread::sleep(Duration::from_millis(1));
+                if self.frame_buffer.is_complete() {
+                    return;
+                }
             }
             sockets.retain(|(state, _)| *state != SocketState::Disconnected);
         }

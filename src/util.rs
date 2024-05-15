@@ -93,3 +93,19 @@ impl PixelReq {
 pub const PIXEL_BUFFER_SIZE: usize = 200;
 pub type PixelReqBuffer = [Option<PixelReq>; PIXEL_BUFFER_SIZE];
 pub type PixelResBuffer = [Option<PixelRes>; PIXEL_BUFFER_SIZE];
+
+pub trait ExitOnError<T> {
+    fn exit_with(self, message: &str) -> T;
+}
+
+impl<T, E: std::fmt::Display> ExitOnError<T> for Result<T, E> {
+    fn exit_with(self, message: &str) -> T {
+        match self {
+            Ok(val) => val,
+            Err(e) => {
+                eprintln!("{}", message);
+                std::process::exit(1);
+            }
+        }
+    }
+}

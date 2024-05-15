@@ -9,6 +9,7 @@ use crate::init::Mode;
 use crate::net::NetClient;
 use crate::net::NetServer;
 use crate::renderer::render_multithreaded;
+use crate::util::ExitOnError;
 use init::get_resolution;
 use init::get_scene;
 use init::Argv;
@@ -44,7 +45,7 @@ fn main() {
         }
         Mode::NetClient => {
             let scene = Arc::new(RwLock::new(scene));
-            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).unwrap();
+            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).exit_with("Failed to connect to server");
             loop {
                 let pixel_requests = Some(pixel_provider.read_next_pixel());
                 let pixel_request_iter = pixel_requests.into_iter();
@@ -61,8 +62,6 @@ fn main() {
             fb.set_pixel_from_iterator(&mut pixels);
             fb.save_as_bmp(&argv.output_file.unwrap()).unwrap();
         }
-        Mode::Window => {
-            // loop_until_closed(&mut renderer, scene, resolution);
-        }
+        Mode::Window => {}
     }
 }
