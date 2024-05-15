@@ -20,7 +20,7 @@ impl NetClient {
         println!("Connecting to server at {}", server_address);
         Ok(Self {
             scene: None,
-            reader: NetSocket::new(stream),
+            reader: NetSocket::new(stream, 0),
         })
     }
 

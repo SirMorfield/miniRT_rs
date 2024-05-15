@@ -46,13 +46,16 @@ fn main() {
         Mode::NetClient => {
             let scene = Arc::new(RwLock::new(scene));
             let mut pixel_provider = NetClient::new(&argv.address.unwrap()).exit_with("Failed to connect to server");
+            let mut rendered_pixel_blocks = 0;
             loop {
                 let pixel_requests = Some(pixel_provider.read_next_pixel());
                 let pixel_request_iter = pixel_requests.into_iter();
                 let pixels = render_multithreaded(scene.clone(), &resolution, pixel_request_iter);
                 for pixel in pixels {
                     pixel_provider.send_pixel(pixel);
+                    rendered_pixel_blocks += 1;
                 }
+                println!("Rendered {} pixels", rendered_pixel_blocks)
             }
         }
         Mode::ToFile => {

@@ -4,6 +4,7 @@ use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
 use std::io::ErrorKind;
 use std::net::TcpListener;
+use std::os::unix::process;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
@@ -48,8 +49,8 @@ impl NetServer {
                         stream.set_nonblocking(true).unwrap();
 
                         let mut connections = connections.lock().unwrap();
-                        let len = connections.len();
-                        connections.push((SocketState::Uninitialized, NetSocket::new(stream, len as u64)));
+                        let len = connections.len() as u64;
+                        connections.push((SocketState::Uninitialized, NetSocket::new(stream, len)));
                     }
                     Err(e) => eprintln!("Incoming stream error: {}", e),
                 }
@@ -69,7 +70,7 @@ impl NetServer {
                     return;
                 }
             }
-            sockets.retain(|(state, _)| *state != SocketState::Disconnected);
+            // sockets.retain(|(state, _)| *state != SocketState::Disconnected);
         }
     }
 }
@@ -90,7 +91,7 @@ fn handle_socket(
                 match response {
                     NetResponse::RenderPixel(buffer) => frame_buffer.set_pixel_from_buffer(&buffer),
                 }
-                println!("Progress: {}%", frame_buffer.progress().get());
+                // println!("Progress: {}%", frame_buffer.progress().get());
             }
             Err(e) => {
                 if e.kind() != ErrorKind::WouldBlock {
@@ -110,6 +111,7 @@ fn handle_socket(
                 println!("All pixels rendered, resetting");
                 frame_buffer.save_as_bmp(Path::new("output.bmp")).unwrap();
                 pixel_stream.reset();
+                panic!("All pixels rendered");
                 return;
             }
             NetCommand::RenderPixel(coordinate)
@@ -118,6 +120,9 @@ fn handle_socket(
     };
     let binding = serde_cbor::to_vec(&cmd).unwrap();
 
+    // let mut cmd = format!("{:?}", cmd);
+    // cmd.truncate(50);
+    // println!("Sending {cmd} to socket {}", socket.id);
     if let Err(e) = socket.write(binding.as_slice()) {
         if e.kind() != ErrorKind::WouldBlock {
             eprintln!("Client error: {}", e);

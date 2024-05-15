@@ -2,6 +2,7 @@ use std::io::{ErrorKind, Read, Write};
 use std::net::TcpStream;
 
 pub struct NetSocket {
+    pub id: u64,
     stream: TcpStream,
     buffer: [u8; 512],
     len: usize,
@@ -9,8 +10,9 @@ pub struct NetSocket {
 }
 
 impl NetSocket {
-    pub fn new(stream: TcpStream) -> NetSocket {
+    pub fn new(stream: TcpStream, id: u64) -> NetSocket {
         NetSocket {
+            id,
             stream,
             buffer: [0; 512],
             len: 0,         // number of bytes at the start of the buffer that are valid
