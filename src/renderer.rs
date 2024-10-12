@@ -4,7 +4,6 @@ use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
 use crate::util::{threads, Hit, PixelReqBuffer, PixelRes, PixelResBuffer, Ray, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
-use std::num::NonZeroUsize;
 use std::sync::{mpsc, Arc, Mutex, RwLock};
 
 #[derive(Clone)]

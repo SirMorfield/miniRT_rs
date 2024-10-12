@@ -1,12 +1,10 @@
+use super::socket::NetSocket;
+use super::NetResponse;
 use crate::net::NetCommand;
 use crate::scene_readers::Scene;
 use crate::util::{PixelReqBuffer, PixelResBuffer};
 use std::io::Error;
 use std::net::TcpStream;
-use std::sync::{Arc, Mutex};
-
-use super::socket::NetSocket;
-use super::NetResponse;
 
 pub struct NetClient {
     pub scene: Option<Scene>,

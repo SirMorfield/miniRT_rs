@@ -3,10 +3,6 @@
 extern crate bmp;
 extern crate num_integer;
 
-use std::sync::Arc;
-use std::sync::RwLock;
-use std::thread;
-
 use crate::frame_buffer::PixelProvider;
 use crate::init::Mode;
 use crate::net::NetClient;
@@ -16,9 +12,6 @@ use crate::util::ExitOnError;
 use init::get_resolution;
 use init::get_scene;
 use init::Argv;
-use resolution::Resolution;
-use util::split;
-use util::threads;
 
 mod camera;
 mod frame_buffer;
@@ -40,17 +33,19 @@ mod window;
 
 fn main() {
     let argv = Argv::new();
-    let resolution = get_resolution();
-    let mut fb = frame_buffer::FrameBuffer::new(&resolution).unwrap();
-    let scene = get_scene(&argv.input_file).unwrap();
 
     match argv.mode {
         Mode::NetServer => {
+            let resolution = get_resolution();
+            let scene = get_scene(&argv.input_file).unwrap();
             let mut server = NetServer::new(&argv.address.unwrap(), scene, &resolution);
             server.start()
         }
         Mode::NetClient => net_client(&argv),
         Mode::ToFile => {
+            let resolution = get_resolution();
+            let scene = get_scene(&argv.input_file).unwrap();
+            let mut fb = frame_buffer::FrameBuffer::new(&resolution).unwrap();
             let pixel_provider = PixelProvider::new(&resolution);
             // let scene = Arc::new(RwLock::new(scene));
             let mut pixels = render_multithreaded(&scene, &resolution, pixel_provider);

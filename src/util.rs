@@ -1,8 +1,6 @@
-use std::num::NonZeroUsize;
-
-use serde::{Deserialize, Serialize};
-
 use crate::{octree::AABB, vector::Point};
+use serde::{Deserialize, Serialize};
+use std::num::NonZeroUsize;
 
 pub struct Ray {
     pub origin: Point<f32>,
@@ -141,18 +139,18 @@ pub fn split(buf: &PixelReqBuffer, n: usize) -> Vec<PixelReqBuffer> {
 }
 
 mod split_test {
-    use super::*;
+    #[allow(dead_code)]
+    use crate::util::*;
 
-    #[test]
     fn test_split() {
-        const x: usize = PIXEL_BUFFER_SIZE;
-        let mut buf = [None; x];
+        const X: usize = PIXEL_BUFFER_SIZE;
+        let mut buf = [None; X];
 
-        for i in 0..x {
+        for i in 0..X {
             buf[i] = Some(PixelReq::new(i, i));
         }
 
-        for split_size in vec![1, 2, 3, 4, x - 2, x - 1, x, x + 1, x + 2] {
+        for split_size in vec![1, 2, 3, 4, X - 2, X - 1, X, X + 1, X + 2] {
             let parts = split(&buf, split_size);
 
             for req in buf.iter() {
