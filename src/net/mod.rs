@@ -15,11 +15,11 @@ pub enum NetCommand {
     Identify,
     ReadScene(Scene),
     #[serde(with = "serde_arrays")]
-    RenderPixel(PixelReqBuffer),
+    RenderPixBuf(PixelReqBuffer),
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum NetResponse {
     #[serde(with = "serde_arrays")]
-    RenderPixel(PixelResBuffer),
+    RenderPixBuf(PixelResBuffer),
 }

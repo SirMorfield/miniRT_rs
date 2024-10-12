@@ -4,11 +4,9 @@ use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
 use std::io::ErrorKind;
 use std::net::TcpListener;
-use std::os::unix::process;
 use std::path::Path;
 use std::sync::{Arc, Mutex};
 use std::thread;
-use std::time::Duration;
 
 #[derive(PartialEq)]
 enum SocketState {
@@ -65,7 +63,6 @@ impl NetServer {
             {
                 #[rustfmt::skip]
                 handle_socket( state, socket, &mut self.frame_buffer, &mut self.pixel_stream, &self.scene);
-                thread::sleep(Duration::from_millis(1));
                 if self.frame_buffer.is_complete() {
                     return;
                 }
@@ -89,9 +86,9 @@ fn handle_socket(
                 let response: NetResponse = serde_cbor::from_slice(&response).unwrap();
 
                 match response {
-                    NetResponse::RenderPixel(buffer) => frame_buffer.set_pixel_from_buffer(&buffer),
+                    NetResponse::RenderPixBuf(buffer) => frame_buffer.set_pixel_from_buffer(&buffer),
                 }
-                // println!("Progress: {}%", frame_buffer.progress().get());
+                println!("Progress: {}%", frame_buffer.progress().get() * 100.0);
             }
             Err(e) => {
                 if e.kind() != ErrorKind::WouldBlock {
@@ -106,7 +103,7 @@ fn handle_socket(
     let cmd = match state {
         SocketState::Uninitialized => NetCommand::ReadScene(scene.clone()),
         SocketState::Initiated => {
-            let coordinate = pixel_stream.get_coordinates();
+            let pix_buf = pixel_stream.get_coordinates();
             if frame_buffer.is_complete() {
                 println!("All pixels rendered, resetting");
                 frame_buffer.save_as_bmp(Path::new("output.bmp")).unwrap();
@@ -114,7 +111,7 @@ fn handle_socket(
                 panic!("All pixels rendered");
                 return;
             }
-            NetCommand::RenderPixel(coordinate)
+            NetCommand::RenderPixBuf(pix_buf)
         }
         _ => unreachable!(),
     };

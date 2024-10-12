@@ -2,7 +2,7 @@ use crate::camera::Camera;
 use crate::light::Light;
 use crate::resolution::Resolution;
 use crate::scene_readers::Scene;
-use crate::util::{Hit, PixelReqBuffer, PixelRes, PixelResBuffer, Ray, PIXEL_BUFFER_SIZE};
+use crate::util::{threads, Hit, PixelReqBuffer, PixelRes, PixelResBuffer, Ray, PIXEL_BUFFER_SIZE};
 use crate::vector::Point;
 use std::num::NonZeroUsize;
 use std::sync::{mpsc, Arc, Mutex, RwLock};
@@ -114,14 +114,12 @@ pub fn render_multithreaded(
     resolution: &Resolution,
     pixels: impl Iterator<Item = PixelReqBuffer> + Send + 'static,
 ) -> impl Iterator<Item = PixelResBuffer> {
-    let threads = std::thread::available_parallelism()
-        .unwrap_or(NonZeroUsize::new(8).unwrap())
-        .get();
     let (tx, rx) = mpsc::channel();
     let renderer = Arc::new(Renderer::new(resolution.clone()));
     let pixels = Arc::new(Mutex::new(pixels));
     let scene = Arc::new(RwLock::new(scene.clone()));
-    for _ in 0..threads {
+
+    for _ in 0..threads() {
         let tx = tx.clone();
         let renderer = renderer.clone();
         let scene = scene.clone();

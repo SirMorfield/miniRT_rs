@@ -85,7 +85,8 @@ impl NetSocket {
         checksum
     }
 
-    pub fn disconnect(&self) {
+    pub fn disconnect(&mut self) {
+        self.stream.flush().unwrap();
         self.stream.shutdown(std::net::Shutdown::Both).unwrap();
     }
 }

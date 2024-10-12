@@ -4,7 +4,6 @@ use crate::util::{PixelReqBuffer, PixelResBuffer};
 use std::io::Error;
 use std::net::TcpStream;
 use std::sync::{Arc, Mutex};
-use NetCommand::RenderPixel;
 
 use super::socket::NetSocket;
 use super::NetResponse;
@@ -33,9 +32,9 @@ impl NetClient {
                 println!("Received scene");
                 self.scene = Some(scene)
             }
-            RenderPixel(pixel_req) => {
+            NetCommand::RenderPixBuf(pixel_req) => {
                 if self.scene.is_none() {
-                    println!("WARN: received RenderPixel command without scene loaded, skipping");
+                    println!("WARN: received RenderPixBuf command without scene loaded, skipping");
                 } else {
                     return pixel_req;
                 }
@@ -48,8 +47,12 @@ impl NetClient {
     }
 
     pub fn send_pixel(&mut self, pixel_res: PixelResBuffer) {
-        let cmd = NetResponse::RenderPixel(pixel_res);
+        let cmd = NetResponse::RenderPixBuf(pixel_res);
         let binding = serde_cbor::to_vec(&cmd).unwrap();
         self.reader.write(binding.as_slice()).unwrap();
+    }
+
+    pub fn disconnect(&mut self) {
+        self.reader.disconnect();
     }
 }
