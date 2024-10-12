@@ -13,6 +13,7 @@ use crate::util::ExitOnError;
 use init::get_resolution;
 use init::get_scene;
 use init::Argv;
+use resolution::Resolution;
 
 mod camera;
 mod frame_buffer;
@@ -43,28 +44,30 @@ fn main() {
             let mut server = NetServer::new(&argv.address.unwrap(), scene, &resolution);
             server.start()
         }
-        Mode::NetClient => {
-            let scene = Arc::new(RwLock::new(scene));
-            let mut pixel_provider = NetClient::new(&argv.address.unwrap()).exit_with("Failed to connect to server");
-            let mut rendered_pixel_blocks = 0;
-            loop {
-                let pixel_requests = Some(pixel_provider.read_next_pixel());
-                let pixel_request_iter = pixel_requests.into_iter();
-                let pixels = render_multithreaded(scene.clone(), &resolution, pixel_request_iter);
-                for pixel in pixels {
-                    pixel_provider.send_pixel(pixel);
-                    rendered_pixel_blocks += 1;
-                }
-                println!("Rendered {} pixels", rendered_pixel_blocks)
-            }
-        }
+        Mode::NetClient => net_client(&argv, &resolution),
         Mode::ToFile => {
             let pixel_provider = PixelProvider::new(&resolution);
-            let scene = Arc::new(RwLock::new(scene));
-            let mut pixels = render_multithreaded(scene, &resolution, pixel_provider);
+            // let scene = Arc::new(RwLock::new(scene));
+            let mut pixels = render_multithreaded(&scene, &resolution, pixel_provider);
             fb.set_pixel_from_iterator(&mut pixels);
             fb.save_as_bmp(&argv.output_file.unwrap()).unwrap();
         }
         Mode::Window => {}
+    }
+}
+
+fn net_client(argv: &Argv, resolution: &Resolution) {
+    let mut pixel_provider = NetClient::new(argv.address.as_ref().unwrap()).exit_with("Failed to connect to server");
+
+    let mut rendered_pixel_blocks = 0;
+    loop {
+        let pixel_requests = Some(pixel_provider.read_next_pixel());
+        let pixel_request_iter = pixel_requests.into_iter();
+        let pixels = render_multithreaded(&pixel_provider.scene.clone().unwrap(), &resolution, pixel_request_iter);
+        for pixel in pixels {
+            pixel_provider.send_pixel(pixel);
+            rendered_pixel_blocks += 1;
+        }
+        println!("Rendered {} pixels", rendered_pixel_blocks)
     }
 }

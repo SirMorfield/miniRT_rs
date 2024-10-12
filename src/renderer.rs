@@ -110,7 +110,7 @@ impl Renderer {
 }
 
 pub fn render_multithreaded(
-    scene: Arc<RwLock<Scene>>,
+    scene: &Scene,
     resolution: &Resolution,
     pixels: impl Iterator<Item = PixelReqBuffer> + Send + 'static,
 ) -> impl Iterator<Item = PixelResBuffer> {
@@ -120,6 +120,7 @@ pub fn render_multithreaded(
     let (tx, rx) = mpsc::channel();
     let renderer = Arc::new(Renderer::new(resolution.clone()));
     let pixels = Arc::new(Mutex::new(pixels));
+    let scene = Arc::new(RwLock::new(scene.clone()));
     for _ in 0..threads {
         let tx = tx.clone();
         let renderer = renderer.clone();

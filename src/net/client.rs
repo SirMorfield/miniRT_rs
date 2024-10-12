@@ -10,7 +10,7 @@ use super::socket::NetSocket;
 use super::NetResponse;
 
 pub struct NetClient {
-    scene: Option<Scene>,
+    pub scene: Option<Scene>,
     reader: NetSocket,
 }
 
